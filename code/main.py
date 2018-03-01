@@ -18,11 +18,10 @@ import sys
 @app.route('/')
 def index():
     str = """Hello, """
-    for line in open(r"test/data.txt"):
-        if "123" in line:
-            return str + line
-    open(r"test/data.txt").close()
-    return str
+    with open("test/data.txt" , 'r') as f:
+        first_line = f.readline()
+        for line in f:
+            return (line.split(",")[0])
 
 
 if __name__ == '__main__':
