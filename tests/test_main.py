@@ -15,6 +15,9 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, 'code')))
 
+import mysql.connector
+
+
 
 import main
 import unittest
@@ -30,6 +33,16 @@ class MainTest(unittest.TestCase):
         rv = self.app.get('/')
         print(rv.data)
         assert("hello" in rv.data.lower())
+    
+    def find_by_id(id):
+        cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
+        cursor = cnx.cursor()
+        cursor.execute("SELECT * FROM smartgrid WHERE TeamID = %s",[id])
+        row = dict(zip(cursor.column_names, cursor.fetchone()))
+        return row
+        cursor.close()
+        cnx.close()
+
 
 if __name__ == '__main__':
     unittest.main()
