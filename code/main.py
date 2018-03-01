@@ -13,16 +13,15 @@ app = Flask(__name__)
 #     aws_secret_access_key='dummy_secret_key',
 #     verify=False)
 
-import sys
+res = "hello "
+with open("test/data.txt" , 'r') as f:
+    first_line = f.readline()
+    for line in f:
+        res = res + line.split(",")[0] + " "
 
 @app.route('/')
 def index():
 #     return "hello 123 234"
-    res = "hello "
-    with open("test/data.txt" , 'r') as f:
-        first_line = f.readline()
-        for line in f:
-            res = res + line.split(",")[0] + " "
     return res
 
 if __name__ == '__main__':
