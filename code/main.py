@@ -17,13 +17,13 @@ import sys
 
 @app.route('/')
 def index():
-    return "hello 123 234"
-#     str = """Hello, """
-#     with open("test/data.txt" , 'r') as f:
-#         first_line = f.readline()
-#         for line in f:
-#             return (line.split(",")[0])
-
+#     return "hello 123 234"
+    res = "hello "
+    with open("test/data.txt" , 'r') as f:
+        first_line = f.readline()
+        for line in f:
+            res = res + line.split(",")[0] + " "
+    return res
 
 if __name__ == '__main__':
     app.run(debug=True)
