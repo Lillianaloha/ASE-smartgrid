@@ -13,10 +13,19 @@ app = Flask(__name__)
 #     aws_secret_access_key='dummy_secret_key',
 #     verify=False)
 
+import sys
 
 @app.route('/')
 def index():
-    return "Hello, World (lets see how long a change takes III)!"
+#    return "Hello, World (lets see how long a change takes III)!"
+    str = 'hello'
+    for line in open(r"/Lillianaloha/test/test.txt"):
+        str = str + line
+
+    open(r"/Lillianaloha/test/test.txt").close()
+    return str
+#    print(type(line))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
