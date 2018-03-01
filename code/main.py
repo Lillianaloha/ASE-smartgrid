@@ -23,7 +23,7 @@ def index():
     f1.close()
 
     res = " "
-    with open("data.txt" , 'r') as f:
+    with open("data.txt" , 'r+') as f:
         first_line = f.readline()
         for line in f:
             res = res + line.split(",")[0] + " "
