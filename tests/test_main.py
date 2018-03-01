@@ -34,14 +34,34 @@ class MainTest(unittest.TestCase):
         print(rv.data)
         assert("hello" in rv.data.lower())
     
-#     def find_by_id(id):
-#         cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
-#         cursor = cnx.cursor()
-#         cursor.execute("SELECT * FROM smartgrid WHERE TeamID = %s",[id])
-#         row = dict(zip(cursor.column_names, cursor.fetchone()))
-#         return row
-#         cursor.close()
-#         cnx.close()
+    def find_by_id(id):
+          cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
+          cursor = cnx.cursor()
+          cursor.execute("SELECT * FROM smartgrid WHERE TeamID = %s",[id])
+          row = dict(zip(cursor.column_names, cursor.fetchone()))
+          cursor.close()
+          cnx.close()
+          return row
+
+
+    def createCSV(self):
+        cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
+        cursor = cnx.cursor()
+        cursor.execute("SELECT * FROM smartgrid")
+
+        # Convert everything into a CSV file
+        with open('SmartGrid.txt', 'wb') as file:
+
+            while True:
+
+                data = TLSsocket.recv(BUFFER_SIZE)
+                if not data:
+                    break
+                # write data to a file
+
+        file.write(data)
+        cursor.close()
+        cnx.close()
 
 
 if __name__ == '__main__':
