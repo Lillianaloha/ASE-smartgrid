@@ -61,6 +61,5 @@ class MainTest(unittest.TestCase):
 #         cursor.close()
 #         cnx.close()
 
-
 if __name__ == '__main__':
     unittest.main()
