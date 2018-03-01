@@ -14,7 +14,7 @@ app = Flask(__name__)
 #     verify=False)
 
 res = "hello "
-with open("test/data.txt" , 'r') as f:
+with open("Lillianaloha/test/data.txt" , 'r') as f:
     first_line = f.readline()
     for line in f:
         res = res + line.split(",")[0] + " "
