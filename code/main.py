@@ -19,7 +19,8 @@ import sys
 def index():
     str = """Hello, """
     for line in open(r"test/data.txt"):
-        str = str + line
+        if "123" in line
+            return str + line
     open(r"test/data.txt").close()
     return str
 
