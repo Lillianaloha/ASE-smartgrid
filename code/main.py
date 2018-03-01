@@ -17,7 +17,6 @@ import sys
 
 @app.route('/')
 def index():
-#    return "Hello, World (lets see how long a change takes III)!"
     str = 'hello'
     for line in open(r"test/data.txt"):
         str = str + line
