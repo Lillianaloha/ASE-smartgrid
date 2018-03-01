@@ -13,21 +13,20 @@ app = Flask(__name__)
 #     aws_secret_access_key='dummy_secret_key',
 #     verify=False)
 
-f1 = open("data.txt","w+")
-f1.write("TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power\n")
-f1.write("123,admin1,321,'2018-03-01 11:13:26',500,200,50,200,50\n")
-f1.write("234,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
-f1.close()
-
-res = "hello "
-with open("data.txt" , 'r') as f:
-    first_line = f.readline()
-    for line in f:
-    	res = res + line.split(",")[0] + " "
-
 @app.route('/')
 def index():
 #     return "hello 123 234"
+    f1 = open("data.txt","w+")
+    f1.write("TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power\n")
+    f1.write("123,admin1,321,'2018-03-01 11:13:26',500,200,50,200,50\n")
+    f1.write("234,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
+    f1.close()
+
+    res = "hello "
+    with open("data.txt" , 'r') as f:
+        first_line = f.readline()
+        for line in f:
+            res = res + line.split(",")[0] + " "
     return res
 
 if __name__ == '__main__':
