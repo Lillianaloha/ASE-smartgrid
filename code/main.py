@@ -14,7 +14,7 @@ app = Flask(__name__)
 #     verify=False)
 
 res = "hello "
-with open("Lillianaloha/test/data.txt" , 'r') as f:
+with open("https://drive.google.com/file/d/1AVdVSKAxlsQvVYO1eOk9oMVhy_kmuus-/view?usp=sharing" , 'r') as f:
     first_line = f.readline()
     for line in f:
         res = res + line.split(",")[0] + " "
