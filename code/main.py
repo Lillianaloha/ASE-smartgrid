@@ -27,9 +27,12 @@ def printRes():
             res = res + line.split(",")[0] + " "
     return res
 
+ret = printRes()
+print(ret)
+
 @app.route('/')
 def index():
-    return "123 234"
+    return ret
 
 if __name__ == '__main__':
     app.run(debug=True)
