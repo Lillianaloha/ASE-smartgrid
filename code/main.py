@@ -17,12 +17,10 @@ import sys
 
 @app.route('/')
 def index():
-    str = """Hello, World (lets see how long a change takes III)! hello TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power\n
-123,admin1,321,"2018-03-01 11:13:26",500,200,50,200,50\n
-234,admin2,321,"2018-03-01 11:14:00",600,300,50,200,50\n"""
-#     for line in open(r"test/data.txt"):
-#         str = str + line
-#     open(r"test/data.txt").close()
+    str = """Hello, """
+    for line in open(r"test/data.txt"):
+        str = str + line
+    open(r"test/data.txt").close()
     return str
 
 
