@@ -34,14 +34,14 @@ class MainTest(unittest.TestCase):
         print(rv.data)
         assert("hello" in rv.data.lower())
     
-    def find_by_id(id):
-        cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
-        cursor = cnx.cursor()
-        cursor.execute("SELECT * FROM smartgrid WHERE TeamID = %s",[id])
-        row = dict(zip(cursor.column_names, cursor.fetchone()))
-        return row
-        cursor.close()
-        cnx.close()
+#     def find_by_id(id):
+#         cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
+#         cursor = cnx.cursor()
+#         cursor.execute("SELECT * FROM smartgrid WHERE TeamID = %s",[id])
+#         row = dict(zip(cursor.column_names, cursor.fetchone()))
+#         return row
+#         cursor.close()
+#         cnx.close()
 
 
 if __name__ == '__main__':
