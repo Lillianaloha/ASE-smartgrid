@@ -19,12 +19,11 @@ import sys
 def index():
 #    return "Hello, World (lets see how long a change takes III)!"
     str = 'hello'
-    for line in open(r"/Lillianaloha/test/test.txt"):
+    for line in open(r"test/data.txt"):
         str = str + line
 
-    open(r"/Lillianaloha/test/test.txt").close()
+    open(r"test/data.txt").close()
     return str
-#    print(type(line))
 
 
 if __name__ == '__main__':
