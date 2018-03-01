@@ -22,7 +22,7 @@ def index():
     f1.write("234,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
     f1.close()
 
-    res = "hello "
+    res = " "
     with open("data.txt" , 'r') as f:
         first_line = f.readline()
         for line in f:
