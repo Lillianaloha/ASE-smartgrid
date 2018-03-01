@@ -29,7 +29,7 @@ def printRes():
 
 @app.route('/')
 def index():
-    return printRes()
+    return "123 234"
 
 if __name__ == '__main__':
     app.run(debug=True)
