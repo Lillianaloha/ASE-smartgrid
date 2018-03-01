@@ -20,7 +20,6 @@ def index():
     str = 'hello'
     for line in open(r"test/data.txt"):
         str = str + line
-
     open(r"test/data.txt").close()
     return str
 
