@@ -30,7 +30,7 @@ class MainTest(unittest.TestCase):
     def test_hello_world(self):
         rv = self.app.get('/')
         print(rv.data)
-        assert("123" in rv.data.lower())
+        assert("smartgrid1" in rv.data.lower())
     
 #     def find_by_id(id):
 #           cnx = mysql.connector.connect(user='root', password='lillian', host='127.0.0.1', database='ase')
