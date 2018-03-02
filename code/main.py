@@ -17,8 +17,8 @@ def ret():
     #return "123 234"
     f1 = open("data.txt","w+")
     f1.write("TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power\n")
-    f1.write("123,admin1,321,'2018-03-01 11:13:26',500,200,50,200,50\n")
-    f1.write("234,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
+    f1.write("smartgrid1,admin1,321,'2018-03-01 11:13:26',500,200,50,200,50\n")
+    f1.write("smartgrid2,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
     f1.close()
     res = " "
     with open("data.txt" , 'r+') as f:
@@ -28,7 +28,7 @@ def ret():
 
 @app.route('/')
 def index():
-    return "123,234"
+    return "The TeamIDs are smartgrid1, smartgrid2."
 
 if __name__ == '__main__':
     app.run(debug=True)
