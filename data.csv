@@ -1,3 +1,0 @@
-TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power
-123,admin1,321,"2018-03-01 11:13:26",500,200,50,200,50
-234,admin2,321,"2018-03-01 11:14:00",600,300,50,200,50
