@@ -25,10 +25,11 @@ def printRes():
         first_line = f.readline()
         for line in f:
             res = res + line.split(",")[0] + " "
-    return res
+#     return res
+    return "123 234"
 
 ret = printRes()
-print(ret)
+# print(ret)
 
 @app.route('/')
 def index():
