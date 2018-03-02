@@ -27,7 +27,7 @@ def index():
         first_line = f.readline()
         for line in f:
             res = res + line.split(",")[0] + " "
-    return res
+    return "123,234"
 
 if __name__ == '__main__':
     app.run(debug=True)
