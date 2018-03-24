@@ -13,16 +13,22 @@ app = Flask(__name__)
 #     aws_secret_access_key='dummy_secret_key',
 #     verify=False)
 
-import sys
+def ret():
+    #return "123 234"
+    f1 = open("data.txt","w+")
+    f1.write("TeamID,User,NodeID,Timestamp,total_power,total_fundamental_power,reaction_power,consumed_power,sold_power\n")
+    f1.write("smartgrid1,admin1,321,'2018-03-01 11:13:26',500,200,50,200,50\n")
+    f1.write("smartgrid2,admin2,321,'2018-03-01 11:14:00',600,300,50,200,50\n")
+    f1.close()
+    res = " "
+    with open("data.txt" , 'r+') as f:
+        first_line = f.readline()
+        for line in f:
+            res = res + line.split(",")[0] + " "
 
 @app.route('/')
 def index():
-    str = 'hello'
-    for line in open(r"test/data.txt"):
-        str = str + line
-    open(r"test/data.txt").close()
-    return str
-
+    return "The TeamIDs are smartgrid1, smartgrid2."
 
 if __name__ == '__main__':
     app.run(debug=True)
