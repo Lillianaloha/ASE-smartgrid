@@ -1,4 +1,5 @@
-<?php
+    //virtual machine ip
+    //two integer variable timerate and sampling_rate<?php
 error_reporting(E_ALL);
 
 /* Allow the script to hang around waiting for connections. */
@@ -36,6 +37,8 @@ do
         "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
     socket_write($msgsock, $msg, strlen($msg));
     
+    //virtual machine ip
+    //two integer variable timetate and sampling_rate
     generate_IP = 160.39.137.191;
     generate_Port = 8000;
     timeRate = -1;
@@ -86,7 +89,7 @@ do
               echo "generator_socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) . "\n";
         }
     
-        
+        //check if negative, if +, send to generator
         if time > 0
             socket_write($generator_socket, $timeRate, 4)
         else
