@@ -152,7 +152,6 @@ int main(int argc, char **argv)
     }
 
     srand(time(NULL));
-    printf("Smart Meter generated initialized\n");
 
     //Listen for incoming requests
     int servSock = createServerSocket(serverPort);
@@ -166,6 +165,7 @@ int main(int argc, char **argv)
     }
     data_init(d);
 
+    printf("Smart Meter data generator initialized\n");
     pid_t pid = fork();
 
     if(pid < 0)
@@ -177,6 +177,7 @@ int main(int argc, char **argv)
     {
         // For every second...
         // Generate new values...
+        printf("Data Generator started\n");
         int t = 1;
         int w = 1;
         int phi = 60;
@@ -234,6 +235,7 @@ int main(int argc, char **argv)
         //Spawn a new thread
         pthread_t t1;
 	long client = (long) clntSock;
+        printf("New client thead created\n");
 	pthread_create(&t1, NULL, run, (void *) client);
 	pthread_join(t1, NULL);
     } 
