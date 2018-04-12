@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <semaphore.h>
 #include <stdio.h>
 #include <time.h>
@@ -216,6 +217,7 @@ int main(int argc, char **argv)
             d -> Sold_Power += 1;
             pthread_mutex_unlock(&(d -> mutex));
         }
+        exit(0);
     }
     
     while(flag)
