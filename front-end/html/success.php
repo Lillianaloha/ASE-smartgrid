@@ -82,7 +82,7 @@ img.avatar {
 						<li> <a href="../index.html">Home</a> </li>
 						<li class="active"> <a href="success.php">Search</a> </li>
                         <li> <a href="about.html">About Us</a> </li>
-						<li> <a href="server.html">Future</a> </li>
+						<li> <a href="future.html">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -106,7 +106,7 @@ img.avatar {
 				
 			</div>
 			
-        <form action="success2.php" method="post">
+        <form action="testmain.php" method="get">
           <div class="imgcontainer">
             <img src="../img/gateway.png" height="70" width="90">
             <h1>Enter</h1>
@@ -121,29 +121,18 @@ img.avatar {
                 <input type="text" placeholder="Enter IP address" name="ip" >            
             <label for="port"><b>Port</b></label>
                 <input type="text" placeholder="Enter port number" name="port" >
-            <h>TeamID selection</h>       
-            <select name="id" id="" >
-                    <?php
-                    showID();
-                      ?>
-                 </select>
             <button type="submit">Search</button>
           </div>
         </form>
 		</div>
-		
 
-
-
-	
-	
 		<!--3、尾部-->
 		<div id="footer">
 			<p>
 				<a href="../index.html">Home</a> |
 				<a href="success.php">Search</a> |
 				<a href="about.html">About Us</a> |
-				<a href="server.html">Future</a> |
+				<a href="future.html">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu

@@ -1,0 +1,24 @@
+#main .content{
+	width: 1141px;
+	margin-bottom: 100px;
+}
+#main .content .section1{
+	/*width: 1141px;*/
+	width: 735px;
+	/*height: 320px;*/
+	height: 226px;
+	/*background: red;*/
+	padding-top: 100px;
+	background: url(../img/future.jpeg) no-repeat;
+    background-size: 38% 100%;
+	padding-left: 470px;
+}
+#main .content .section1 h3{
+	font-size: 16px;
+	height: 50px;
+}
+#main .content .section1 p{
+	font-size: 14px;
+	line-height: 29px;
+	border-bottom: 1px solid #89898B;
+}

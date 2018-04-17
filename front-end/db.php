@@ -1,7 +1,12 @@
 <?php
-$servername = "35.185.3.227";
+//$servername = "35.185.3.227";
+//$username = "root";
+//$password = "";
+//$dbname = "ase";
+
+$servername = "127.0.0.1";
 $username = "root";
-$password = "";
+$password = "lillian";
 $dbname = "ase";
 
 // Create connection

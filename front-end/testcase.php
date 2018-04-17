@@ -37,7 +37,6 @@ do
     $time_rate = 10;
     $sampling_rate = 10;
     
-    
     //Or we can pre-set IP and port?
     
     do 
