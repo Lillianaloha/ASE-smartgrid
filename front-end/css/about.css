@@ -1,16 +1,25 @@
 #main .content{
-	width: 1141px;
+	width: 1140px;
+	height: 400px;
 	margin-bottom: 10px;
 }
 #main .content .section1{
 	/*width: 1141px;*/
-	width: 735px;
+	width: 1000px;
 	/*height: 320px;*/
-	height: 226px;
-	padding-top: 100px;
+	height: 300px;
+/*	padding-top: 100px;*/
 	background: url(../img/about1.png) no-repeat;
     background-size: 35% 80%;
 	padding-left: 405px;
+	margin-top: 50px;
+	margin-left: 50px;
+}
+
+#content_sec1{
+	margin-top: 10px;
+	display: inline-block;
+	width: 1000px;
 }
 #main .content .section1 h3{
 	font-size: 16px;
