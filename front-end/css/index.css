@@ -40,7 +40,7 @@
 
 #main .our .show .section{
 	width: 340px;
-	height: 320px;
+	height: 340px;
 	/*background: blue;*/
 	display: inline-block;
 	position: relative;
@@ -83,8 +83,11 @@
 }*/
 
 #main .our .show .section:hover{
-	background-color: #ffffff; 
+	background-color: #ffffff;
+	color: #800000;
+	font-weight: bold;
 }
+
 
 #main .success{
 	/*width: 1141px;*/
@@ -162,6 +165,10 @@
     line-height: 60px;
     text-align: left;
     
+}
+
+#hover_style{
+	overflow: hidden;
 }
 #main .success .fixBox .shop img{
 	width: 360px;
