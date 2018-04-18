@@ -1,30 +1,25 @@
-    //virtual machine ip
-    //two integer variable timerate and sampling_rate<?php
+<?php
 error_reporting(E_ALL);
-
 /* Allow the script to hang around waiting for connections. */
 set_time_limit(0);
-
 /* Turn on implicit output flushing so we see what we're getting
  * as it comes in. */
 ob_implicit_flush();
 
+//Main Computer data that holds SQL Database and website
 $address = 'localhost';
-$port = 8000;
+$port = 9009;
 
 // Creating Server Socket
 if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
     echo "socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
 }
-
 if (socket_bind($sock, $address, $port) === false) {
     echo "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
 }
-
 if (socket_listen($sock, 5) === false) {
     echo "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
 }
-
 do 
 {
     if (($msgsock = socket_accept($sock)) === false) 
@@ -37,13 +32,10 @@ do
         "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
     socket_write($msgsock, $msg, strlen($msg));
     
-    //virtual machine ip
-    //two integer variable timetate and sampling_rate
-    generate_IP = 160.39.137.191;
-    generate_Port = 8000;
-    timeRate = -1;
-    sampling_rate = -1;
-    
+    $generate_IP = '160.39.137.191';
+    $generate_Port = 8001;
+    $time_rate = 10;
+    $sampling_rate = 10;
     
     //Or we can pre-set IP and port?
     
@@ -68,56 +60,72 @@ do
             echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
             break 2;
         }
-        if (false === ($buf = socket_read($generate_Port, 4, PHP_NORMAL_READ))) 
+        */
+        
+        //Get both time and sampling rate from client
+        /*
+        if (false === ($buf = socket_read($time_rate, 4, PHP_NORMAL_READ))) 
         {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
+            echo "Failed to read time rate: " . socket_strerror(socket_last_error($msgsock)) . "\n";
             break 2;
         }
-        if (false === ($buf = socket_read($generate_Port, 4, PHP_NORMAL_READ))) 
+        echo "time rate is :$time_rate";
+        
+        if (false === ($buf = socket_read($sampling_rate, 4, PHP_NORMAL_READ))) 
         {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
+            echo "Failed to read sampling rate: " . socket_strerror(socket_last_error($msgsock)) . "\n";
             break 2;
         }
         */
         
-        if (($generator_sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) 
+        //Create Socket and connect to Generator
+        $generator_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+                                          
+        if ($generator_socket === false) 
         {
-            echo "generator_socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
+            echo "Failed to create generator socket: reason: " . socket_strerror(socket_last_error()) . "\n";
         }
-        if((socket_connect($generator_sock,$generate_IP, $Port)) == false)
+        
+        if((socket_connect($generator_socket,$generate_IP, $generate_Port)) == false)
         {
-              echo "generator_socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) . "\n";
+              echo "Failed to connect to generator.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) . "\n";
         }
     
-        //check if negative, if +, send to generator
-        if time > 0
-            socket_write($generator_socket, $timeRate, 4)
-        else
-            //Error
-            echo "Invalid time input!";
         
-        if time > 0
-            socket_write($generator_socket, $timeRate, 4)
+        if ($time_rate > 0)
+            socket_write($generator_socket, $time_rate, 4);
         else
-            //Error
-            echo "Invalid sampling rate input!";
+            echo "Invalid time input!\n";
+        
+        if ($sampling_rate > 0)
+            socket_write($generator_socket, $sampling_rate, 4);
+        else
+            echo "Invalid sampling rate input!\n";
         
         //Now wait until transmission completes...
+        $counter = 1;
         while(true)
         {
-            if (false === ($buf = socket_read($msgsock, 2048, PHP_NORMAL_READ))) 
+            //Read from generator
+            if (false === ($buf = socket_read($generator_socket, 2048, PHP_NORMAL_READ))) 
             {
-                echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
+                echo "Failed to get data from generator..." . socket_strerror(socket_last_error($msgsock)) . "\n";
                 break 2;
             }
-            echo $buf
-            if (time == 0)
+            echo $buf;
+            if (!$buf = trim($buf))
             {
-                
+                continue;
             }
-            --time;
+//            echo $buf;
+            if ($time_rate == $counter)
+            {
+                break;
+            }
+            $counter = $counter + 1;
         }
         
+        /*
         if (!$buf = trim($buf)) 
         {
             continue;
@@ -134,11 +142,12 @@ do
         $talkback = "PHP: You said '$buf'.\n";
         socket_write($msgsock, $talkback, strlen($talkback));
         echo "$buf\n";
+        */
     } 
     while (true); 
+    echo "Reading Smart Grid Generator session complete\n";
     socket_close($msgsock);
 }
 while (true);
-
 socket_close($sock);
 ?>

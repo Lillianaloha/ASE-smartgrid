@@ -3,7 +3,7 @@
 
 <?php 
     global $conn;
-    $id = $_POST['id'];
+    $id = $_GET['id'];
     $query = "SELECT * FROM smartgrid ";
     $query .= "WHERE TeamID = $id ";
     $result = mysqli_query($conn, $query);
@@ -17,6 +17,7 @@
         $node = $row['NodeID'];
         
     }
+    echo $id;
 ?>
 
 <!DOCTYPE html>
@@ -144,7 +145,7 @@ th {
 				<a href="../index.html">Home</a> |
 				<a href="success.php">Search</a> |
 				<a href="about.html">About Us</a> |
-				<a href="server.html">Future</a> |
+				<a href="future.html">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu

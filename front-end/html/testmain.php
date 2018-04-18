@@ -1,70 +1,94 @@
-<?php include "db.php";?>
-<?php include "function.php";?>
-<?php include "success.php";?>
-
+<?php include "../db.php"?>
 <?php
-$id = $_POST['id'];
-$port = $_POST['port'];
-$ip = $_POST['ip'];
-$time = $_POST['time'];
-$rate = $_POST['rate'];
 
-error_reporting(E_ALL);
+//list($Va,$Vb,$Vc,$Ia,$Ib,$Ic,$Total_Power,$Total_Fundamental_Power,$Phase_A_Power,$Phase_B_Power,$Phase_C_Power,$Reactive_Power,$Phase_A_Reactive_ower,$Phase_B_Reactive_Power,$Phase_C_Reactive_Power,$Consumed_Power,$Sold_Power) = explode(",",$buf)
+//global $abc;
+//$data = "00000000210,00000000209,00000000209";
+//list($user, $pass, $uid) = explode(",", $data);
+//echo $user; // foo
+//echo $pass;
+//echo $abc;// *
+//global $conn;
+//
+    
+    
+//mysql_select_db("my_db", $con);
+//$query = "INSERT INTO smartgrid(Va, Vb, Ia) VALUES ('$user','$pass','$uid')";
+//$result = mysqli_query($conn, $query);
+//if(!$result) {
+//    die('Query FAILED' . mysqli_error());
+//}
+//echo "1 record added";
+    
 
-/* Allow the script to hang around waiting for connections. */
-set_time_limit(0);
 
-/* Turn on implicit output flushing so we see what we're getting
- * as it comes in. */
-ob_implicit_flush();
 
-$address = 'localhost';
-$port = 8002;
+//$string = "{00000000210,00000000209,00000000209}";
+//$buf = str_replace(array('{','}'), '', $string);
+//echo $buf 
 
-if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
-    echo "socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
+$buf = "210,209,209";
+$counter = 1;
+$array = array(explode(',', strval($counter).','.$buf));
+$fp = fopen('file.csv', 'a');
+foreach ($array as $fields) {
+    fputcsv($fp, $fields);
 }
-
-if (socket_bind($sock, $address, $port) === false) {
-    echo "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
+$buf = "211,211,211";
+$array = array(explode(',', $buf));
+$fp = fopen('file.csv', 'a');
+foreach ($array as $fields) {
+    fputcsv($fp, $fields);
 }
-
-if (socket_listen($sock, 5) === false) {
-    echo "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
-}
-
-do {
-    if (($msgsock = socket_accept($sock)) === false) {
-        echo "socket_accept() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
-        break;
+$row = 1;
+if (($handle = fopen("file.csv", "r")) !== FALSE) {
+  while (($data = fgetcsv($handle, ",")) !== FALSE) {
+    $num = count($data);
+    echo "<p> $num fields in line $row: <br /></p>\n";
+    $row++;
+    for ($c=0; $c < $num; $c++) {
+        echo $data[$c] . "<br />\n";
     }
-    /* Send instructions. */
-    $msg = "\nWelcome to the PHP Test Server. \n" .
-        "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
-    socket_write($msgsock, $msg, strlen($msg));
-
-    do {
-        if (false === ($buf = socket_read($msgsock, 2048, PHP_NORMAL_READ))) {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        if (!$buf = trim($buf)) {
-            continue;
-        }
-        if ($buf == 'quit') {
-            break;
-        }
-        if ($buf == 'shutdown') {
-            socket_close($msgsock);
-            break 2;
-        }
-        $talkback = "PHP: You said '$buf'.\n";
-        socket_write($msgsock, $talkback, strlen($talkback));
-        echo "$buf\n";
-        
-    } while (true);
-    socket_close($msgsock);
-} while (true);
-
-socket_close($sock);
+  }
+  fclose($handle);
+}
+//unlink('file.csv'); 
 ?>
+
+
+
+
+
+
+
+
+<!--table-->
+<?php 
+//global $conn;
+//$query2 = "SELECT * FROM smartgrid";
+//$result = mysqli_query($conn, $query2);
+//if(!$result) {
+//    die('Query FAILED' . mysqli_error());
+//}
+//while($row = mysqli_fetch_assoc($result)) {
+//    echo "<br>";
+//    echo "Va: ".$row['Va']."-".
+//    "Vb: ".$row['Vb']."； ".
+//    "Vc: ".$row['Vc']."； ".
+//    "Ia: ".$row['Ia']."； ".
+//    "Ib: ".$row['Ib']."； ".
+//    "Ib: ".$row['Ib']."<br>".
+//    "Total_Power: ".$row['Total Power']."； ".
+//    "Total_Fundamental_Power: ".$row['Total Fundamental Power']."； ".
+//    "Phase_A_Power: ".$row['Phase A Power']."； ".
+//    "Phase_B_Power: ".$row['Phase B Power']."； ".
+//    "Phase_C_Power: ".$row['Phase C Power']."； ".
+//    "Reactive_Power: ".$row['Reactive Power']."<br>".
+//    "Phase_A_Reactive_ower: ".$row['Phase A Reactive Power']."； ".
+//    "Phase_B_Reactive_Power: ".$row['Phase B Reactive Power']."； ".
+//    "Phase_C_Reactive_Power: ".$row['Phase C Reactive Power']."； ".
+//    "Consumed_Power: ".$row['Consumed Power']."； ".
+//    "Sold_Power: ".$row['Sold Power']."<br>";       
+//}
+?>
+
