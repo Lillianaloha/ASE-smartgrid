@@ -86,7 +86,10 @@ ssize_t Send(int sock, const char *buf)
 
 void data_init(struct data * d)
 {
-    pthread_mutex_init(&d -> mutex, NULL);
+    if((sem_init(&d->mutex, 1, 1) != 0))
+    {
+        die("failed to initialize semaphore");
+    }
     d -> Va = 0;
     d -> Vb = 0;
     d -> Vc = 0;

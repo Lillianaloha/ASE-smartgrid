@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <semaphore.h>
 #include <pthread.h>
 
 #define MAXPENDING 5
@@ -32,7 +33,7 @@ struct data
     int PhaseC_ReactivePower;
     int Consumed_Power;
     int Sold_Power;
-    pthread_mutex_t mutex;
+    sem_t mutex;
 };
 void data_init(struct data * d);
 ssize_t Send(int sock, const char *buf);

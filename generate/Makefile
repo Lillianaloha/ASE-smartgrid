@@ -1,3 +1,9 @@
+.PHONY:
+default: generate test
+
+test:
+	gcc test.c -o test
+
 generate: generate.o socket.o
 	gcc -g -Wall generate.o socket.o -o generate -pthread -lm
 
@@ -9,10 +15,11 @@ socket.o: socket.c
 
 .PHONY:
 clean:
+	rm -rf a.out
 	rm -rf *~
 	rm -rf *.o
-	rm -rf a.out
 	rm -rf generate
+	rm -rf test
 
 .PHONY:
-all: clean generate
+all: clean default

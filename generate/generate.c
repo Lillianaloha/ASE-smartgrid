@@ -18,7 +18,8 @@
 
 // Connection Variables
 unsigned short port = 3500;
-unsigned short serverPort = 8000;
+unsigned short serverPort = 8001;
+
 char ipAddress [15] = "127.0.0.1";
 static int flag = 1;
 struct data * d;
@@ -52,6 +53,8 @@ static void breakLoop(int signo)
 
 void * run(void * client)
 {
+    printf("Thread Running!\n");
+
     // Get Client Socket
     long temp = (long) client;
     
@@ -62,16 +65,22 @@ void * run(void * client)
     // Get sampling rate: 1 reading per second, 2 second, etc.
     int time = 0; //(in seconds)
     int sampling = 0;//(in seconds)
+    
+    printf("Waiting for reading time\n");
     if(read(clntSock, &time, sizeof(int)) < 0)
     {
         die("Error at reading time.");
     }
-    time = ntohl(time);
+    //time = ntohl(time);
+    printf("Thread received time rate: %d\n", time);
+
+    printf("Waiting for reading sampling rate\n");
     if(read(clntSock, &sampling, sizeof(int)) < 0)
     {
         die("Error at reading sampling rate.");
     }
-    sampling = ntohl(sampling);
+    //sampling = ntohl(sampling);
+    printf("Thread received sampling rate: %d\n", sampling);
 
     //If a user wants to send data offline...read it now
     /*
@@ -103,13 +112,13 @@ void * run(void * client)
     // Read the Data, get local size
     // Repeat until time is up!
 
-// Print the data
+    // Print the data
     // {00000000110,00000000011,...,...,}
     char printData [255] = "";
     int ctr = 0;
     while(true)  
     {  
-	pthread_mutex_lock(&(d -> mutex));
+	//pthread_mutex_lock(&(d -> mutex));
     	Va = d -> Va;
     	Vb = d -> Vb;
     	Vc = d -> Vc;
@@ -127,7 +136,7 @@ void * run(void * client)
     	PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
     	Consumed_Power = d -> Consumed_Power;
     	Sold_Power = d -> Sold_Power;
-    	pthread_mutex_unlock(&(d -> mutex));
+    	//pthread_mutex_unlock(&(d -> mutex));
     
     	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
     	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
@@ -168,27 +177,28 @@ int main(int argc, char **argv)
     printf("Smart Meter data generator initialized\n");
     pid_t pid = fork();
 
+ 
     if(pid < 0)
     {
         die("fork() failed");
     }
-    // Child Process will Generate new data every second
-    else if (pid == 0)
+    
+    // Parent Process will be generating Data
+    else if (pid != 0)
     {
         // For every second...
         // Generate new values...
-        printf("Data Generator started\n");
+        printf("Data Generator started...\n");
         int t = 1;
         int w = 1;
         int phi = 60;
         while (flag)
         {
-            pthread_mutex_lock(&(d -> mutex));
-            /*
-             * va = \sqrt(2) V_in cos(wt + phi)
-             * vb = \sqrt(2) V_in cos(wt + phi - 120)
-             * vc = \sqrt(2) V_in cos(wt + phi + 120)
-             * */
+            //pthread_mutex_lock(&(d -> mutex));
+            // va = \sqrt(2) V_in cos(wt + phi)
+            // vb = \sqrt(2) V_in cos(wt + phi - 120)
+            // vc = \sqrt(2) V_in cos(wt + phi + 120)
+             
             
             // Independant Variables
             // Voltage is default 110, +/- 5%
@@ -216,11 +226,13 @@ int main(int argc, char **argv)
             d -> PhaseC_ReactivePower += 1;
             d -> Consumed_Power += 1;
             d -> Sold_Power += 1;
-            pthread_mutex_unlock(&(d -> mutex));
+            //pthread_mutex_unlock(&(d -> mutex));
         }
+	printf("Generator shutting down\n");
         exit(0);
     }
     
+    //Child Processes will be all the incoming requests
     while(flag)
     {
         // wait for a client to connect
@@ -235,12 +247,14 @@ int main(int argc, char **argv)
         //Spawn a new thread
         pthread_t t1;
 	long client = (long) clntSock;
-        printf("New client thead created\n");
+        printf("New client thread created\n");
 	pthread_create(&t1, NULL, run, (void *) client);
-	pthread_join(t1, NULL);
+        pthread_join(t1, NULL);
     } 
     // for (;;)
     
+    //Free everything
     free(d);
+    munmap(d, sizeof(struct data));
     return 0;
 }
