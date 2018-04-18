@@ -13,17 +13,32 @@ void message();
 
 int main(int argc, char ** argv)
 {
-    time_t start, now;
-    time(&start);
-    printf("Epoch time in seconds is: %ld\n", start);
-    int complete = 10;
-    int sampling = 2;
-    
-    //int counter = 9;
+    time_t epoch;
+    time_t prev;
+    time_t now;
+
+    time(&epoch);
+    unsigned int complete = 10;
+    unsigned int sampling = 2;
+
+    time(&now);
+    now -= epoch;
+
     while (true)
     {
+        //Prev is holding last iteration of now...
+        prev = now;
+
         //Get current time
-        now = time(NULL) - start;
+        time(&now);
+        now -= epoch;
+        
+        //Has a second passed? If not continue!
+        if(now == prev)
+        {
+            continue;
+        }
+        printf("A second has passed...");
         
         // 10 seconds passed close...
         if (now >= complete)
@@ -33,9 +48,10 @@ int main(int argc, char ** argv)
         }
         else
         {
-            //printf("current value in seconds: %ld\n", now);
+            printf("current value in seconds: %ld\n", now);
             if(now % sampling == 0)
             {
+                //printf("Current Elapsed time is %ld\n", now);
                 message();
             }
         }
