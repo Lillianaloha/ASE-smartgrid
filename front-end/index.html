@@ -47,7 +47,7 @@
 						<div class="section" style="margin: 0 55px;">
 							<i></i>
 							<h4>Researchers</h4>
-							<p id="p2" >Performing research, creating innovations, demonstrating advanced wireless/communications, using internet and sense-and-control technologies to enable the development of the next generation of the electric utility grid - The Smart Grid.</p>
+							<p id="p2" >Performing research, creating innovations, demonstrating advanced wireless communications, using internet and sense-and-control technologies to enable the development of the next generation of the electric utility grid.</p>
 						</div>
 						<div class="section" >
 							<i></i>
@@ -65,19 +65,21 @@
 						
 							<a href="#"> <img src="img/1.png" /> </a>
 							<b>Smart Grid 101</b>
-							<c>  The modernized Smart Grid (SG) is expected to enable several new applications such as dynamic pricing, demand response and fraud detection; however, collection of such fine-grained data raises privacy issues.</c>
+							
+							<c class="hover_style"><marquee onMouseOver="this.stop()" onMouseOut="this.start()" scrollamount="10"> The modernized Smart Grid (SG) is expected to enable several new applications such as<br> dynamic pricing, demand response and fraud detection; however, collection of such fine-<br>grained data raises privacy issues.</marquee></c>
+						     
 							
 							<a href="#"> <img src="img/2.png" /> </a>
 				            <b>Wireless Mesh Networking</b>
-							<c>  A wireless mesh network (WMN) is a communication network which enables any two nodes in the network to communicate with each other even if they are not in each other’s coverage area. A collection of nodes builds a communication path in order to distribute messages between each other.</c>
+							<c class="hover_style"><marquee onMouseOver="this.stop()" onMouseOut="this.start()" scrollamount="10">  A wireless mesh network (WMN) is a communication network which enables any two nodes<br> in the network to communicate with each other even if they are not in each other’s coverage<br> area. A collection of nodes builds a communication path in order to distribute messages<br> between each other.</marquee></c>
 							
 							<a href="#"> <img src="img/3.png" /> </a>
 							<b>Advanced Metering Infrastructure</b>
-							<c>  Advanced metering infrastructure is a desegregated system of smart meters, data management systems, and communication network which facilitate two-way communication betwixt user and utility.</c>
+							<c class="hover_style"><marquee onMouseOver="this.stop()" onMouseOut="this.start()" scrollamount="10">  Advanced metering infrastructure is a desegregated system of smart meters, data<br> management systems, and communication network which facilitate two-way communication<br> between user and utility.</marquee></c>
 							
 							<a href="#"> <img src="img/4.png" /> </a> 
 							<b>Privacy in AMI</b>
-							<c>  With the current deployment of smart meters (SMs), one of the concerns that started to be raised by the customers is on the privacy of their power consumption data. The exposure of these data can lead to several privacy problems that need to be addressed before the customers can be convinced for the use of SMs.</c>
+							<c class="hover_style"><marquee onMouseOver="this.stop()" onMouseOut="this.start()" scrollamount="10">  With the current deployment of smart meters (SMs), one of the concerns that started to be<br> raised by the customers is on the privacy of their power consumption data. The exposure of<br> these data can lead to several privacy problems that need to be addressed before the<br> customers can be convinced for the use of SMs.</marquee></c>
 							
 
 						</div>
@@ -101,8 +103,52 @@
 
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs
 /jquery/1.4.0/jquery.min.js"></script>
-    <script type="text/javascript" src="jq.js"></script>
+<!--     <script type="text/javascript" src="jq.js"></script> -->
     <script type="text/javascript">
+
+    	var a;
+    	function stoproll(){
+    		// $(".hover_style").css("background-color": "grey");
+    		a=document.querySelector(".hover_style");
+    		a.style.marginLeft='0px';
+    	}
+
+    	// $(function(){
+    	// 	$(".hover_style").click(function(e){
+    	// 		$(this).stop(true,false).animate({"margin-left": "0px"},500);
+    	// 	});
+    	// });
+
+    // $(function(){
+
+    // $(".hover_style").mouseleave(function(e){
+    // 	$(this).animate({"margin-left":"+10px"},500);
+    // }).mouseover(function(e){
+    // 	$(this).stop(true,false).css({"margin-left":"0px"},500);
+    // });
+    // });  
+          
+
+
+
+
+        // function AutoScroll(obj) {  
+  
+        //     $(obj).animate({  
+        //         "margin-left": "-25px"  
+        //     }, 500, function() {  
+        //         $(this).css({ "margin-left": "0px" }).appendTo(this);  
+        //     });  
+        // }  
+
+        // $(function() {  
+        //     var myar = setInterval('AutoScroll(".hover_style")', 5000)  
+        //     $(".hover_style").hover(function() { clearInterval(myar); }, function() { myar = setInterval('AutoScroll(".hover_style")', 5000) });  
+        // });
+
+
+
+
     	// var s=1;
     	// function mouseover1(){
     	// 	// var p=document.getElementsByClassName("p_over");
