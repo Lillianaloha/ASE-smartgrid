@@ -4,12 +4,29 @@
 
 /*
  * Goals: 
- * 1- Get something to print every second
+ * 1- Get something to print every second (CHECK)
  * 2- Get anomaly detection online (say over 5% change)
  * 3- Get your initial values to change by time of day!
  */
 
 void message();
+
+double validMargin = 1.05;
+
+bool isAnomaly(int x)
+{
+        double testCase = (double) x;    
+        double comparison = (testCase * validMargin);
+        if(testCase > comparison)
+        {
+            return true;
+        }
+        else if(testCase < comparison)
+        {
+            return true;
+        }
+        return false;
+}
 
 int main(int argc, char ** argv)
 {
@@ -38,7 +55,7 @@ int main(int argc, char ** argv)
         {
             continue;
         }
-        printf("A second has passed...");
+        printf("A second has passed: %ld\n", now);
         
         // 10 seconds passed close...
         if (now >= complete)
@@ -48,7 +65,7 @@ int main(int argc, char ** argv)
         }
         else
         {
-            printf("current value in seconds: %ld\n", now);
+            //printf("current value in seconds: %ld\n", now);
             if(now % sampling == 0)
             {
                 //printf("Current Elapsed time is %ld\n", now);

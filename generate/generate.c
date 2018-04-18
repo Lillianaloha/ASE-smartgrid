@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#include <pthread.h>    // Threading
 #include <math.h>       // for sin/cos
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
@@ -15,11 +14,13 @@
 # define Vin 110
 # define SQRT2 1.14142
 # define SQRT3 1.73205
+# define THREADS 16
 
 // Connection Variables
 unsigned short port = 3500;
 unsigned short serverPort = 8001;
 
+static pthread_t thread_pool[THREADS];
 char ipAddress [15] = "127.0.0.1";
 static int flag = 1;
 struct data * d;
@@ -51,20 +52,92 @@ static void breakLoop(int signo)
     flag = 0;
 }
 
-void * run(void * client)
+void * generateData()
 {
-    printf("Thread Running!\n");
+    // For every second...
+    // Generate new values...
 
+    printf("Data Generator started...\n");
+    int t = 1;
+    int w = 1;
+    int phi = 60;
+
+    while (flag)
+
+    {
+
+        // pthread_mutex_lock(&(d -> mutex));
+        pthread_rwlock_wrlock(&d -> rwlock);
+        // va = \sqrt(2) V_in cos(wt + phi)
+        // vb = \sqrt(2) V_in cos(wt + phi - 120)
+        // vc = \sqrt(2) V_in cos(wt + phi + 120)
+             
+        // Independant Variables
+        // Voltage is default 110, +/- 5%    
+        // 104.5 - 114.5 Volts
+        
+        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi)));
+        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi - 120)));
+        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi + 120)));
+
+  
+        // Current 0 - 50 A
+        d -> Ia = rand() % 50;
+        d -> Ib = rand() % 50;
+        d -> Ic = rand() % 50;
+    
+        //Dependent Variables
+        d -> Total_Power += 1;
+        d -> Total_FundamentalPower += 1;
+        d -> PhaseA_Power = d -> Va * d -> Ia; 
+        d -> PhaseB_Power = d -> Vb * d -> Ib;
+        d -> PhaseC_Power = d -> Vc * d -> Ic;
+            
+
+        //Reactive Power: Irms * Vrms * 
+        d -> ReactivePower += 1;
+        d -> PhaseA_ReactivePower += 1;
+        d -> PhaseB_ReactivePower += 1;
+        d -> PhaseC_ReactivePower += 1;
+        d -> Consumed_Power += 1;
+        d -> Sold_Power += 1;
+
+        //pthread_mutex_unlock(&(d -> mutex));
+        pthread_rwlock_unlock(&d -> rwlock);
+    }
+    printf("Generator shutting down\n");
+    return NULL;
+}
+
+void * run(void * serv)
+{
+    printf("Thread Running!\n");	
+    /*
     // Get Client Socket
     long temp = (long) client;
-    
     //This socket connects generator and master computer...
     int clntSock = (int) temp;
+    */
+
+    // Get Client Socket
+    long temp = (long) serv;
+    //This socket connects generator and master computer...
+    int servSock = (int) temp;
+
+      
+    struct sockaddr_in clntAddr;
+    unsigned int clntLen = sizeof(clntAddr);
+    int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
+
+    if (clntSock < 0)
+    {
+        die("accept() failed");
+    }
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    int time = 0; //(in seconds)
-    int sampling = 0;//(in seconds)
+    int time = 0;       //(in seconds)
+    int sampling = 0;   //(in seconds)
     
     printf("Waiting for reading time\n");
     if(read(clntSock, &time, sizeof(int)) < 0)
@@ -119,7 +192,8 @@ void * run(void * client)
     while(true)  
     {  
 	//pthread_mutex_lock(&(d -> mutex));
-    	Va = d -> Va;
+    	pthread_rwlock_rdlock(&d -> rwlock);
+        Va = d -> Va;
     	Vb = d -> Vb;
     	Vc = d -> Vc;
     	Ia = d -> Ia;
@@ -137,7 +211,8 @@ void * run(void * client)
     	Consumed_Power = d -> Consumed_Power;
     	Sold_Power = d -> Sold_Power;
     	//pthread_mutex_unlock(&(d -> mutex));
-    
+        pthread_rwlock_unlock(&d -> rwlock);
+
     	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
     	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
     	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
@@ -155,9 +230,15 @@ void * run(void * client)
 
 int main(int argc, char **argv)
 {
-    if (signal(SIGINT, &breakLoop) == SIG_ERR)
+    if(signal(SIGINT, &breakLoop) == SIG_ERR)
     {
 	die("CTRL + C failed");
+    }
+
+    //Ignore signal...
+    if(signal(SIGUSR1, NULL) == SIG_ERR)
+    {
+
     }
 
     srand(time(NULL));
@@ -174,65 +255,16 @@ int main(int argc, char **argv)
     }
     data_init(d);
 
-    printf("Smart Meter data generator initialized\n");
-    pid_t pid = fork();
-
- 
-    if(pid < 0)
+    printf("Smart Meter Program Initialized!\n");
+    pthread_t generatorThread;
+    pthread_create(&generatorThread, NULL, &generateData, NULL);
+   
+    for (int i = 0; i < THREADS; i++)
     {
-        die("fork() failed");
+        pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
     }
-    
-    // Parent Process will be generating Data
-    else if (pid != 0)
-    {
-        // For every second...
-        // Generate new values...
-        printf("Data Generator started...\n");
-        int t = 1;
-        int w = 1;
-        int phi = 60;
-        while (flag)
-        {
-            //pthread_mutex_lock(&(d -> mutex));
-            // va = \sqrt(2) V_in cos(wt + phi)
-            // vb = \sqrt(2) V_in cos(wt + phi - 120)
-            // vc = \sqrt(2) V_in cos(wt + phi + 120)
-             
-            
-            // Independant Variables
-            // Voltage is default 110, +/- 5%
-            // 104.5 - 114.5 Volts
-            d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi)));
-            d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi - 120)));
-            d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi + 120)));
 
-            // Current 0 - 50 A
-            d -> Ia = rand() % 50;
-            d -> Ib = rand() % 50;
-            d -> Ic = rand() % 50;
-
-            //Dependent Variables
-            d -> Total_Power += 1;
-            d -> Total_FundamentalPower += 1;
-            d -> PhaseA_Power = d -> Va * d -> Ia; 
-            d -> PhaseB_Power = d -> Vb * d -> Ib;
-            d -> PhaseC_Power = d -> Vc * d -> Ic;
-            
-            //Reactive Power: Irms * Vrms * 
-            d -> ReactivePower += 1;
-            d -> PhaseA_ReactivePower += 1;
-            d -> PhaseB_ReactivePower += 1;
-            d -> PhaseC_ReactivePower += 1;
-            d -> Consumed_Power += 1;
-            d -> Sold_Power += 1;
-            //pthread_mutex_unlock(&(d -> mutex));
-        }
-	printf("Generator shutting down\n");
-        exit(0);
-    }
-    
-    //Child Processes will be all the incoming requests
+    /*
     while(flag)
     {
         // wait for a client to connect
@@ -247,13 +279,21 @@ int main(int argc, char **argv)
         //Spawn a new thread
         pthread_t t1;
 	long client = (long) clntSock;
-        printf("New client thread created\n");
 	pthread_create(&t1, NULL, run, (void *) client);
         pthread_join(t1, NULL);
-    } 
+    }
     // for (;;)
+     */    
     
-    //Free everything
+    //Clean up Program...
+    pthread_join(generatorThread, NULL);
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_join(thread_pool[i], NULL);
+    }
+
+    pthread_rwlock_destroy(&d -> rwlock);
+    sem_destroy(&d -> mutex);
     free(d);
     munmap(d, sizeof(struct data));
     return 0;

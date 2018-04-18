@@ -90,6 +90,10 @@ void data_init(struct data * d)
     {
         die("failed to initialize semaphore");
     }
+    if(pthread_rwlock_init(&d -> rwlock, NULL) != 0)
+    {
+        die("Failed to initialize read/write lock");
+    }
     d -> Va = 0;
     d -> Vb = 0;
     d -> Vc = 0;

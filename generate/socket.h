@@ -34,6 +34,7 @@ struct data
     int Consumed_Power;
     int Sold_Power;
     sem_t mutex;
+    pthread_rwlock_t rwlock;
 };
 void data_init(struct data * d);
 ssize_t Send(int sock, const char *buf);
