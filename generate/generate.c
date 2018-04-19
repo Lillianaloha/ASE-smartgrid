@@ -58,6 +58,20 @@ Sigfunc * signal(int signo, Sigfunc *func)
     return(oact.sa_handler);
 }
 
+Sigfunc * signal_intr(int signo, Sigfunc *func)
+{
+    struct sigaction    act, oact;
+
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+#ifdef SA_INTERRUPT
+    act.sa_flags |= SA_INTERRUPT;
+#endif
+    if (sigaction(signo, &act, &oact) < 0)
+        return(SIG_ERR);
+    return(oact.sa_handler);
+}
 // Set Program off... Kill processes and threads now!
 static void breakLoop(int signo)
 {
@@ -267,7 +281,7 @@ int main(int argc, char **argv)
     pthread_t generatorThread;
     struct sockaddr_in clntAddr;
 
-    if(signal(SIGINT, &breakLoop) == SIG_ERR)
+    if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
 	die("CTRL + C failed");
     }
