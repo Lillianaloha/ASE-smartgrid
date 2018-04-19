@@ -170,6 +170,12 @@
 #hover_style{
 	overflow: hidden;
 }
+
+#main .success .fixBox .shop c:hover{
+	font-weight: bold;
+    font-size: 15px;
+}
+
 #main .success .fixBox .shop img{
 	width: 360px;
 	height: 256px;
