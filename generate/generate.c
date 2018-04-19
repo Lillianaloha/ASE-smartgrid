@@ -178,7 +178,7 @@ void * run(void * connection)
         die("Error at reading time.");
     }
     printf("Thread received time rate: %s\n", time_input);
-    current_time = atoi(time_input);
+    time_out = atoi(time_input);
 
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, sampling_input, 4) < 0)
