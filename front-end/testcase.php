@@ -8,7 +8,7 @@ ob_implicit_flush();
 
 //Main Computer data that holds SQL Database and website
 $address = 'localhost';
-$port = 9009;
+$port = 8187;
 
 // Creating Server Socket
 if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
@@ -32,10 +32,14 @@ do
         "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
     socket_write($msgsock, $msg, strlen($msg));
     
-    $generate_IP = '160.39.137.191';
+    $generate_IP = '160.39.232.239';
     $generate_Port = 8001;
-    $time_rate = 10;
-    $sampling_rate = 10;
+//    $time_rate = 10;
+//    $sampling_rate = 10;
+    if( $_GET["time"] || $_GET["rate"] ) {
+      $time_rate = "00".$_GET['time'];
+      $sampling_rate = "00".$_GET['rate'];
+   }  
     
     //Or we can pre-set IP and port?
     
