@@ -2,6 +2,7 @@
 #define SOCKET_H_
 
 #include <sys/socket.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -14,6 +15,7 @@ int createClientSocket(char * ip, unsigned int port);
 int createServerSocket(unsigned short port);
 ssize_t Send(int sock, const char *buf);
 void die(char * message);
+bool isAnomaly(int x);
 
 struct data
 {

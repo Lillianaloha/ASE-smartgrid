@@ -101,7 +101,7 @@ void * generateData()
     	current -= epoch;
 
 	//If a second hasn't elapsed wait a bit more...
-	if(current == previous)
+	if(current != previous)
 	{
             continue;		
 	}
@@ -165,13 +165,6 @@ void * run(void * connection)
     */
 
     // Data to Return
-    int Va, Vb, Vc;
-    int Ia, Ib, Ic;
-    int Total_Power, Total_FundamentalPower;
-    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
-    int ReactivePower;
-    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
-    int Consumed_Power, Sold_Power;
     char printData [255] = "";
 
     // Get time to read
@@ -184,6 +177,7 @@ void * run(void * connection)
     int sampling = 0;   //(in seconds)
     
     // Keep track of time
+time_t previous;
     time_t current;
 	
     time(&current);
@@ -276,7 +270,6 @@ void * run(void * connection)
     while(true)  
     {
 	// Prev is holding last iteration of current
-	time_t previous;
 	previous = current;
 	
 	// Update and check...
@@ -284,7 +277,7 @@ void * run(void * connection)
         current -= epoch;
 	
 	// A second did not pass...
-	if(current == previous)
+	if(current != previous)
 	{
             continue;
 	}
@@ -300,32 +293,16 @@ void * run(void * connection)
 	if(current % sampling == 0)
 	{
             pthread_rwlock_rdlock(&d -> rwlock);
-            Va = d -> Va;
-            Vb = d -> Vb;
-            Vc = d -> Vc;
-            Ia = d -> Ia;
-            Ib = d -> Ib;
-            Ic = d -> Ic;
-            Total_Power = d -> Total_Power;
-            Total_FundamentalPower = d -> Total_FundamentalPower;
-            PhaseA_Power = d -> PhaseA_Power; 
-            PhaseB_Power = d -> PhaseB_Power;
-            PhaseC_Power = d -> PhaseC_Power;
-            ReactivePower = d -> ReactivePower;
-            PhaseA_ReactivePower = d -> PhaseA_ReactivePower;
-            PhaseB_ReactivePower = d -> PhaseB_ReactivePower;
-            PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
-            Consumed_Power = d -> Consumed_Power;
-            Sold_Power = d -> Sold_Power; 
-            pthread_rwlock_unlock(&d -> rwlock);
             sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
-    	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
-    	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
-    	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
-    	
+    	        d->Va, d->Vb, d->Vc, d->Ia, d->Ib, d->Ic, d->Total_Power, d->Total_FundamentalPower, 
+		d->PhaseA_Power, d->PhaseB_Power, d->PhaseC_Power, d->ReactivePower, 
+		d->PhaseA_ReactivePower, d->PhaseB_ReactivePower, d->PhaseC_ReactivePower, 
+		d->Consumed_Power, d->Sold_Power);
+            pthread_rwlock_unlock(&d -> rwlock);
+            
             //fprintf(stdout, "%s\n", printData);
-    	
             Send(clntSock, printData);
+            //Send(remoteSock, printData);
         }
     }
     pthread_exit(NULL);
@@ -339,12 +316,12 @@ int main(int argc, char **argv)
 
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
-	die("CTRL + C failed");
+	die("CTRL + C failed\n");
     }
 
     if(signal(SIGUSR1, &breakLoop) == SIG_ERR)
     {
-	die("Killed by SIGUSR1");
+	die("Killed by SIGUSR1\n");
     }
 
     // Get Epoch time...to compute elapsed time/time out
