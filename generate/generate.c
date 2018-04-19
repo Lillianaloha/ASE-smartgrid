@@ -101,7 +101,7 @@ void * generateData()
     	current -= epoch;
 
 	//If a second hasn't elapsed wait a bit more...
-	if(current != previous)
+	if(current == previous)
 	{
             continue;		
 	}
@@ -277,7 +277,7 @@ time_t previous;
         current -= epoch;
 	
 	// A second did not pass...
-	if(current != previous)
+	if(current == previous)
 	{
             continue;
 	}
