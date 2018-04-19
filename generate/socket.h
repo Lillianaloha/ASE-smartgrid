@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #define MAXPENDING 5
-int createClientSocket(char * ip, unsigned short port);
+int createClientSocket(char * ip, unsigned int port);
 int createServerSocket(unsigned short port);
 void die(char * message);
 

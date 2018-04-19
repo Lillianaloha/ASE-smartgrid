@@ -41,7 +41,7 @@ int createServerSocket(unsigned short port)
     return servSock;
 }
 
-int createClientSocket(char * ip, unsigned short port)
+int createClientSocket(char * ip, unsigned int port)
 {
     int sock;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
