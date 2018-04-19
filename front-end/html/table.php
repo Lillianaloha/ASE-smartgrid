@@ -55,7 +55,7 @@
                <div class="container">
                 <h2>Information Table</h2>
                 
-                <?php 
+                <a><?php 
                 global $conn;
                 $query2 = "SELECT * FROM smartgrid";
                 $result = mysqli_query($conn, $query2);
@@ -82,7 +82,7 @@
                     "Consumed_Power: ".$row['Consumed Power']."； ".
                     "Sold_Power: ".$row['Sold Power']."<br>";       
                 }
-                ?>
+                ?></a>
             </div>
 		</div>
 

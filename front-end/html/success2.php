@@ -3,7 +3,7 @@
 
 <?php 
     global $conn;
-    $id = $_GET['id'];
+    $id = $_POST['id'];
     $query = "SELECT * FROM smartgrid ";
     $query .= "WHERE TeamID = $id ";
     $result = mysqli_query($conn, $query);
