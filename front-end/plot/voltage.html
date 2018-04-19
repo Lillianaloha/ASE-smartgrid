@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript"
+  src="dygraph.js"></script>
+<style>
+.page-wrapper
+    {
+        width:1000px;
+        margin:auto;
+    }
+    </style>
+<link rel="stylesheet" src="dygraph.css" />
+</head>
+<body>
+<div class="page-wrapper">
+    <br />
+    <h2 aligh="center">Voltage Change</h2>
+</div>
+<div id="graphdiv"></div>
+<script type="text/javascript">
+    
+  g = new Dygraph(
+
+    // containing div
+    document.getElementById("graphdiv"),
+
+    // CSV or path to a CSV file.
+    "file.csv",
+      {labels:["id","va","vb","vc"],       
+      }
+  );
+</script>
+</body>
+</html>
