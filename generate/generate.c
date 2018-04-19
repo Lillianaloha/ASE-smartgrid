@@ -7,43 +7,28 @@
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
-#include <time.h>	// for time()...I can't use SIGALRM because of synchronization =(
 #include "socket.h"
 #include "apue.h"
-#include <errno.h>	// for error number
-#include <string.h>
 
 # define PI 3.14159265
 # define Vin 110
 # define SQRT2 1.14142
 # define SQRT3 1.73205
 # define THREADS 16
-# define ON 1
-# define OFF 0
-
-//Just in case I want someone to set frequency and phase shift
-static int omega = 1;
-static int phi = 60;
-
-//Current Epoch
-time_t epoch;
 
 // Lily...Connect to this Port
+time_t epoch;
 unsigned short serverPort = 8001;
 
-// Contain 16 Threads to listen to incoming requests...
-// static pthread_t thread_pool[THREADS];
-
-// flag to nicely close program
-static int status = ON;
-
-// Contains generator data
+static pthread_t thread_pool[THREADS];
+char ipAddress [15] = "127.0.0.1";
+static int flag = 1;
 struct data * d;
-
 
 Sigfunc * signal(int signo, Sigfunc *func)
 {
     struct sigaction act, oact;
+
     act.sa_handler = func;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
@@ -58,9 +43,7 @@ Sigfunc * signal(int signo, Sigfunc *func)
         act.sa_flags |= SA_RESTART;
     }
     if (sigaction(signo, &act, &oact) < 0)
-    {
         return(SIG_ERR);
-    }
     return(oact.sa_handler);
 }
 
@@ -79,44 +62,26 @@ Sigfunc * signal_intr(int signo, Sigfunc *func)
     return(oact.sa_handler);
 }
 
-// Set Program off... Kill processes and threads now!
 static void breakLoop(int signo)
 {
-    status = OFF;
+    flag = 0;
 }
 
 void * generateData()
 {
     // For every second...
     // Generate new values...
-    // Omega = 1, Phase = 60 by default
-    // Omega/Phase can be changed through command line arguments  
 
-    int t = 1;
-    time_t current;
-    time_t previous;
     printf("Data Generator started...\n");
+    int t = 1;
+    int w = 1;
+    int phi = 60;
 
-    time(&current);
-    current -= epoch;
-
-    while (status)
+    while (flag)
     {
-	// http://www.ece.k-state.edu//~starret/581/3phase.html
-	previous = current;
-	// Update Current...
-	time(&current);
-    	current -= epoch;
 
-	//If a second hasn't elapsed wait a bit more...
-	if(current == previous)
-	{
-            continue;		
-	}
-	//Update Time
-	++t;
-	
-	pthread_rwlock_wrlock(&d -> rwlock);
+        // pthread_mutex_lock(&(d -> mutex));
+        pthread_rwlock_wrlock(&d -> rwlock);
         // va = \sqrt(2) V_in cos(wt + phi)
         // vb = \sqrt(2) V_in cos(wt + phi - 120)
         // vc = \sqrt(2) V_in cos(wt + phi + 120)
@@ -125,10 +90,11 @@ void * generateData()
         // Voltage is default 110, +/- 5%    
         // 104.5 - 114.5 Volts
         
-        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi)));
-        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi - 120)));
-        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi + 120)));
+        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi)));
+        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi - 120)));
+        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi + 120)));
 
+  
         // Current 0 - 50 A
         d -> Ia = rand() % 50;
         d -> Ib = rand() % 50;
@@ -142,7 +108,7 @@ void * generateData()
         d -> PhaseC_Power = d -> Vc * d -> Ic;
             
 
-        //Reactive Power: Irms * Vrms
+        //Reactive Power: Irms * Vrms * 
         d -> ReactivePower += 1;
         d -> PhaseA_ReactivePower += 1;
         d -> PhaseB_ReactivePower += 1;
@@ -150,15 +116,16 @@ void * generateData()
         d -> Consumed_Power += 1;
         d -> Sold_Power += 1;
 
+        //pthread_mutex_unlock(&(d -> mutex));
         pthread_rwlock_unlock(&d -> rwlock);
     }
-    printf("Generator Thread shutting down\n");
-    pthread_exit(NULL);
+    printf("Generator shutting down\n");
+    return NULL;
 }
 
 void * run(void * connection)
 {
-    printf("Listening Thread Running!\n");	
+   printf("Listening Thread Running!\n");	
     
     //This socket connects generator and computer wanting data...
     int clntSock = (long) connection;
@@ -185,7 +152,7 @@ void * run(void * connection)
     int sampling = 0;   //(in seconds)
     
     // Keep track of time
-time_t previous;
+    time_t previous;
     time_t current;
 	
     time(&current);
@@ -274,9 +241,26 @@ time_t previous;
     }
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
 */   
+    int Va, Vb, Vc;
+    int Ia, Ib, Ic;
+    int Total_Power, Total_FundamentalPower;
+    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
+    int ReactivePower;
+    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
+    int Consumed_Power, Sold_Power;
+
+    // Connect to Gateway Computer (ONLINE)
+    // Connet to other Computer (OFFLINE)
+    // int gatewaySock = createClientSocket(ipAddress, port);
+
+    // Read the Data, get local size
+    // Repeat until time is up!
+
+    // Print the data
+    // {00000000110,00000000011,...,...,}
 
     while(true)  
-    {
+    {  
 	// Prev is holding last iteration of current
 	previous = current;
 	
@@ -297,7 +281,8 @@ time_t previous;
             break;
 	}
 
-	// Sample data now!
+    	pthread_rwlock_rdlock(&d -> rwlock);
+       	// Sample data now!
 	if(current % sampling == 0)
 	{
             printf("Begin Reading data\n");
@@ -313,6 +298,8 @@ time_t previous;
             Send(clntSock, printData);
             //Send(remoteSock, printData);
         }
+    	//fprintf(stdout, "%s\n", printData);
+    	Send(clntSock, printData);
     }
     printf("Listening Thread finished...closing...\n");
     pthread_exit(NULL);
@@ -320,48 +307,21 @@ time_t previous;
 
 int main(int argc, char **argv)
 {
-    int servSock;
-    pthread_t generatorThread;
-    struct sockaddr_in clntAddr;
-
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
 	die("CTRL + C failed\n");
     }
 
-    if(signal(SIGUSR1, &breakLoop) == SIG_ERR)
+    //Ignore signal...
+    if(signal(SIGUSR1, NULL) == SIG_ERR)
     {
-	die("Killed by SIGUSR1\n");
+
     }
 
-    if (argc == 1)
-    {
-        // Need arguments?
-    }
-    // Pass in Server Port
-    else if (argc == 2)
-    {
-        serverPort = atoi(argv[1]);
-    }
-    // Pass in Server Port, omega (frequency)
-    else if (argc == 3)
-    {
-        serverPort = atoi(argv[1]);
-        omega = atoi(argv[2]);
-    }
-    // Pass in Server Port, omega (frequency), phi
-    else
-    {
-        serverPort = atoi(argv[1]);
-        omega = atoi(argv[2]);
-        phi = atoi(argv[3]);
-    }
-    // Get Epoch time...to compute elapsed time/time out
-    time(&epoch);
     srand(time(NULL));
 
     //Listen for incoming requests
-    servSock = createServerSocket(serverPort);
+    int servSock = createServerSocket(serverPort);
 
     //Initialize data struct
     d = (struct data *) mmap(0, sizeof(struct data), 
@@ -371,29 +331,42 @@ int main(int argc, char **argv)
         die("Failed to Map");
     }
     data_init(d);
+
     printf("Smart Meter Program Initialized!\n");
+    pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
-    //I will get a print statement saying generator thread is running...
-    
-    while (status)
+   
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
+    }
+
+    /*
+    while(flag)
     {
         // wait for a client to connect
-        // initialize the in-out parameter
+        struct sockaddr_in clntAddr;
         unsigned int clntLen = sizeof(clntAddr);
         int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
-        if (clntSock == -1)
- 	{
-            if (errno == EINTR)
-	    {
-                // Signal interrupted accept. Break now.
-                break;
-            }
+        if (clntSock < 0)
+        {
             die("accept() failed");
         }
-
-        pthread_t tid;
-        pthread_create(&tid, NULL, run, (void *)(long)clntSock);
-	pthread_detach(tid);
+        
+        //Spawn a new thread
+        pthread_t t1;
+	long client = (long) clntSock;
+	pthread_create(&t1, NULL, run, (void *) client);
+        pthread_join(t1, NULL);
+    }
+    // for (;;)
+     */    
+    
+    //Clean up Program...
+    pthread_join(generatorThread, NULL);
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_join(thread_pool[i], NULL);
     }
 
     pthread_rwlock_destroy(&d -> rwlock);
