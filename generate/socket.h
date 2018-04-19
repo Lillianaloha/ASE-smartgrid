@@ -13,7 +13,6 @@
 int createClientSocket(char * ip, unsigned int port);
 int createServerSocket(unsigned short port);
 ssize_t Send(int sock, const char *buf);
-void data_init(struct data * d);
 void die(char * message);
 
 struct data
@@ -38,5 +37,5 @@ struct data
     sem_t mutex;
     pthread_rwlock_t rwlock;
 };
-
+void data_init(struct data * d);
 #endif
