@@ -17,13 +17,30 @@
 # define THREADS 16
 
 // Lily...Connect to this Port
-time_t epoch;
 unsigned short serverPort = 8001;
+
+//Current Epoch
+time_t epoch;
 
 static pthread_t thread_pool[THREADS];
 char ipAddress [15] = "127.0.0.1";
 static int flag = 1;
 struct data * d;
+
+Sigfunc * signal_intr(int signo, Sigfunc *func)
+{
+    struct sigaction    act, oact;
+
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+#ifdef SA_INTERRUPT
+    act.sa_flags |= SA_INTERRUPT;
+#endif
+    if (sigaction(signo, &act, &oact) < 0)
+        return(SIG_ERR);
+    return(oact.sa_handler);
+}
 
 Sigfunc * signal(int signo, Sigfunc *func)
 {
@@ -47,21 +64,6 @@ Sigfunc * signal(int signo, Sigfunc *func)
     return(oact.sa_handler);
 }
 
-Sigfunc * signal_intr(int signo, Sigfunc *func)
-{
-    struct sigaction    act, oact;
-
-    act.sa_handler = func;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-#ifdef SA_INTERRUPT
-    act.sa_flags |= SA_INTERRUPT;
-#endif
-    if (sigaction(signo, &act, &oact) < 0)
-        return(SIG_ERR);
-    return(oact.sa_handler);
-}
-
 static void breakLoop(int signo)
 {
     flag = 0;
@@ -79,7 +81,6 @@ void * generateData()
 
     while (flag)
     {
-
         // pthread_mutex_lock(&(d -> mutex));
         pthread_rwlock_wrlock(&d -> rwlock);
         // va = \sqrt(2) V_in cos(wt + phi)
@@ -125,88 +126,58 @@ void * generateData()
 
 void * run(void * connection)
 {
-   printf("Listening Thread Running!\n");	
-    
-    //This socket connects generator and computer wanting data...
-    int clntSock = (long) connection;
-    
+    printf("Thread Running!\n");	
     /*
-    // For later: This is in case a user wants to get the data in real time
-    // instead of downloading from CSV from website...
-    char remote_ip [15] = "";
-    char port_input [4];
-    unsigned remote_port = 0;
-    int remoteSock = 0;
+    // Get Client Socket
+    long temp = (long) client;
+    //This socket connects generator and master computer...
+    int clntSock = (int) temp;
     */
+    int Va, Vb, Vc;
+    int Ia, Ib, Ic;
+    int Total_Power, Total_FundamentalPower;
+    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
+    int ReactivePower;
+    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
+    int Consumed_Power, Sold_Power;
 
-    // Data to Return
     char printData [255] = "";
+    int ctr = 0;
+
+    int servSock = (long) connection;
+
+    struct sockaddr_in clntAddr;
+    unsigned int clntLen = sizeof(clntAddr);
+    int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
+
+    if (clntSock < 0)
+    {
+        printf("accept() failed\n");
+	pthread_exit(NULL);
+    }
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    char time_input [4];
-    char sampling_input[4];
-    char * temp;        //Shift to remove padding on 0s
-    
-    int time_out = 0;   //(in seconds)
+    int time = 0;       //(in seconds)
     int sampling = 0;   //(in seconds)
     
-    // Keep track of time
-    time_t previous;
-    time_t current;
-	
-    time(&current);
-    current -= epoch;
-
 //-------------------Get Time------------------------
     printf("Waiting for reading time\n");
-    if(read(clntSock, time_input, 4) < 0)
+    if(read(clntSock, &time, sizeof(int)) < 0)
     {
-        printf("Error at reading time.\n");
+        printf("Error at reading time\n");
 	pthread_exit(NULL);
     }
-    printf("Thread received time rate: %s\n", time_input);
-    
-    //Remove leading 0s...
-    temp = time_input;
-    for(int i = 0; i < 4; i++)
-    {
-        if(time_input[i] == '0')
-        {
-            temp++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    printf("value of time_input is: %s\n", temp);
-    time_out = atoi(temp);
+    printf("Thread received time rate: %d\n", time);
 
 //----------------Get Sampling Rate-----------------
     printf("Waiting for reading sampling rate\n");
-    if(read(clntSock, sampling_input, 4) < 0)
+    if(read(clntSock, &sampling, sizeof(int)) < 0)
     {
-        printf("Error at reading sampling rate.\n");
+        printf("Error at reading sampling rate\n");
 	pthread_exit(NULL);
     }
-    printf("Thread received sampling rate: %s\n", sampling_input);
-    
-    //Remove leading 0s...
-    temp = sampling_input;
-    for(int i = 0; i < 4; i++)
-    {
-        if(sampling_input[i] == '0')
-        {
-            temp++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    printf("value of time_input is: %s\n", temp);
-    sampling = atoi(temp);
+    printf("Thread received sampling rate: %d\n", sampling);
 
 //---------------Get Extra Data for direct outward communication----------------
 /*
@@ -241,68 +212,45 @@ void * run(void * connection)
     }
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
 */   
-    int Va, Vb, Vc;
-    int Ia, Ib, Ic;
-    int Total_Power, Total_FundamentalPower;
-    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
-    int ReactivePower;
-    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
-    int Consumed_Power, Sold_Power;
-
-    // Connect to Gateway Computer (ONLINE)
-    // Connet to other Computer (OFFLINE)
-    // int gatewaySock = createClientSocket(ipAddress, port);
-
-    // Read the Data, get local size
-    // Repeat until time is up!
-
-    // Print the data
-    // {00000000110,00000000011,...,...,}
 
     while(true)  
     {  
-	// Prev is holding last iteration of current
-	previous = current;
-	
-	// Update and check...
-	time(&current);
-        current -= epoch;
-	
-	// A second did not pass...
-	if(current == previous)
-	{
-            continue;
-	}
-
-	// Time is up!
-	if(current >= time_out)
-	{
-            printf("Time is up!\n");
-            break;
-	}
-
+	//pthread_mutex_lock(&(d -> mutex));
     	pthread_rwlock_rdlock(&d -> rwlock);
-       	// Sample data now!
-	if(current % sampling == 0)
-	{
-            printf("Begin Reading data\n");
-            pthread_rwlock_rdlock(&d -> rwlock);
-            sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
-    	        d->Va, d->Vb, d->Vc, d->Ia, d->Ib, d->Ic, d->Total_Power, d->Total_FundamentalPower, 
-		d->PhaseA_Power, d->PhaseB_Power, d->PhaseC_Power, d->ReactivePower, 
-		d->PhaseA_ReactivePower, d->PhaseB_ReactivePower, d->PhaseC_ReactivePower, 
-		d->Consumed_Power, d->Sold_Power);
-            pthread_rwlock_unlock(&d -> rwlock);
-            
-            //fprintf(stdout, "%s\n", printData);
-            Send(clntSock, printData);
-            //Send(remoteSock, printData);
-        }
-    	//fprintf(stdout, "%s\n", printData);
+        Va = d -> Va;
+    	Vb = d -> Vb;
+    	Vc = d -> Vc;
+    	Ia = d -> Ia;
+    	Ib = d -> Ib;
+    	Ic = d -> Ic;
+    	Total_Power = d -> Total_Power;
+    	Total_FundamentalPower = d -> Total_FundamentalPower;
+    	PhaseA_Power = d -> PhaseA_Power; 
+    	PhaseB_Power = d -> PhaseB_Power;
+    	PhaseC_Power = d -> PhaseC_Power;
+    	ReactivePower = d -> ReactivePower;
+    	PhaseA_ReactivePower = d -> PhaseA_ReactivePower;
+    	PhaseB_ReactivePower = d -> PhaseB_ReactivePower;
+    	PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
+    	Consumed_Power = d -> Consumed_Power;
+    	Sold_Power = d -> Sold_Power;
+    	//pthread_mutex_unlock(&(d -> mutex));
+        pthread_rwlock_unlock(&d -> rwlock);
+
+    	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
+    	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
+    	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
+    	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
+    	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
+        if(ctr == time)
+        {
+            break;
+        }
+        ++ctr;   
     }
-    printf("Listening Thread finished...closing...\n");
-    pthread_exit(NULL);
+    printf("Listening Thread complete!");
+    return NULL;
 }
 
 int main(int argc, char **argv)
