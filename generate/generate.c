@@ -11,6 +11,7 @@
 #include "socket.h"
 #include "apue.h"
 #include <errno.h>	// for error number
+#include <string.h>
 
 # define PI 3.14159265
 # define Vin 110
@@ -176,6 +177,7 @@ void * run(void * connection)
     // Get sampling rate: 1 reading per second, 2 second, etc.
     char time_input [4];
     char sampling_input[4];
+    char * temp;        //Shift to remove padding on 0s
     
     int time_out = 0;   //(in seconds)
     int sampling = 0;   //(in seconds)
@@ -192,7 +194,18 @@ void * run(void * connection)
         die("Error at reading time.");
     }
     printf("Thread received time rate: %s\n", time_input);
-    time_out = atoi(time_input);
+    
+    //Remove leading 0s...
+    temp = time_input;
+    for(int i = 0; i < 4; i++)
+    {
+        if(time_input[i] == '0')
+        {
+            temp++;
+        }
+    }
+    printf("value of time_input is: %s\n", temp);
+    time_out = atoi(temp);
 
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, sampling_input, 4) < 0)
@@ -200,7 +213,18 @@ void * run(void * connection)
         die("Error at reading sampling rate.");
     }
     printf("Thread received sampling rate: %s\n", sampling_input);
-    sampling = atoi(sampling_input);
+    
+    //Remove leading 0s...
+    temp = sampling_input;
+    for(int i = 0; i < 4; i++)
+    {
+        if(sampling_input[i] == '0')
+        {
+            temp++;
+        }
+    }
+    printf("value of time_input is: %s\n", temp);
+    sampling = atoi(temp);
 
     // If a user wants to send data else where as well...
     // Well, I mean they can download a CSV, but I can't judge right?

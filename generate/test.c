@@ -3,11 +3,14 @@
 #include <stdbool.h>
 
 /*
- * Goals: 
+ * Goals: by Ravi's meeting
  * 1- Get something to print every second (CHECK)
  * 2- Get anomaly detection online (say over 5% change)
  * 3- What are some good initial values? (How to input them?)
- * 4- Get a Random Number Generator that isn't too crazy... 
+ * 4- Get a Random Number Generator that isn't too crazy...
+ * 5- Change numbers with respect to time of day...
+ * After Ravi at 10 AM
+ * 6- IF POSSIBLE. Get a valid data set...Get some Linear Regression going, add that module 
  */
 
 double validMargin = 1.05;
