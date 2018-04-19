@@ -6,12 +6,18 @@
  * Goals: 
  * 1- Get something to print every second (CHECK)
  * 2- Get anomaly detection online (say over 5% change)
- * 3- Get your initial values to change by time of day!
+ * 3- What are some good initial values? (How to input them?)
+ * 4- Get a Random Number Generator that isn't too crazy...
+ * 5- 
  */
 
-void message();
-
 double validMargin = 1.05;
+time_t epoch;
+
+void message()
+{
+    fprintf(stdout, "Advanced Software Engineering\n");
+}
 
 bool isAnomaly(int x)
 {
@@ -28,55 +34,72 @@ bool isAnomaly(int x)
         return false;
 }
 
+bool secondTick(time_t current)
+{
+    //Get current time
+    time_t now;        
+    time(&now);
+    now -= epoch;
+        
+    //Has a second passed? If not continue!
+    if(now == current)
+    {
+        return false;
+    }
+    else
+    {	
+        return true;
+    }
+}
+
 int main(int argc, char ** argv)
 {
-    time_t epoch;
-    time_t prev;
-    time_t now;
-
-    time(&epoch);
+    time_t current;
     unsigned int complete = 10;
     unsigned int sampling = 2;
 
-    time(&now);
-    now -= epoch;
+    time(&epoch);
+    time(&current);
+    current -= epoch;
 
     while (true)
     {
-        //Prev is holding last iteration of now...
-        prev = now;
-
-        //Get current time
-        time(&now);
-        now -= epoch;
+	//Prev is holding last iteration of now...
+	time_t prev;
+	prev = current;
+	
+	//Update and check...
+	time(&current);
+        current -= epoch;
+	
+/*
+        time(&current);
+	current -= epoch;
+	
+	if(secondTick(current))
+*/
+	if(current != prev)
+	{
+            //printf("A second has passed: %ld\n", current);
         
-        //Has a second passed? If not continue!
-        if(now == prev)
-        {
-            continue;
-        }
-        printf("A second has passed: %ld\n", now);
-        
-        // 10 seconds passed close...
-        if (now >= complete)
-        {
-            printf("10 seconds are up!\n");
-            break;
-        }
-        else
-        {
-            //printf("current value in seconds: %ld\n", now);
-            if(now % sampling == 0)
+            // 10 seconds passed close...
+            if (current >= complete)
             {
-                //printf("Current Elapsed time is %ld\n", now);
-                message();
+                printf("10 seconds are up!\n");	
+                break;
             }
-        }
+        
+            else
+            {
+                //printf("current value in seconds: %ld\n", now);
+                if(current % sampling == 0)
+                {
+                    //printf("Current Elapsed time is %ld\n", now);
+                    message();
+                }
+            }
+        }	
+	
     }
     return 0;
-}
-
-void message()
-{
-    fprintf(stdout, "Advanced Software Engineering\n");
 }

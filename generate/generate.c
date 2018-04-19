@@ -16,8 +16,7 @@
 # define SQRT3 1.73205
 # define THREADS 16
 
-// Connection Variables
-unsigned short port = 3500;
+// Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
 static pthread_t thread_pool[THREADS];
