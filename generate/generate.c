@@ -178,7 +178,7 @@ void * run(void * connection)
         die("Error at reading time.");
     }
     //time = ntohl(time_out);
-    printf("Thread received time rate: %d\n", time_input);
+    printf("Thread received time rate: %s\n", time_input);
 
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, sampling_input, 4) < 0)
@@ -186,7 +186,7 @@ void * run(void * connection)
         die("Error at reading sampling rate.");
     }
     //sampling = ntohl(sampling);
-    printf("Thread received sampling rate: %d\n", sampling_input);
+    printf("Thread received sampling rate: %s\n", sampling_input);
 
     // If a user wants to send data else where as well...
     // Well, I mean they can download a CSV, but I can't judge right?
