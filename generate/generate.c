@@ -160,7 +160,10 @@ void * run(void * connection)
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    int time_out = 0;       //(in seconds)
+    char time_input [4];
+    char sampling_input[4];
+    
+    int time_out = 0;   //(in seconds)
     int sampling = 0;   //(in seconds)
     
     // Keep track of time
@@ -170,20 +173,20 @@ void * run(void * connection)
     current -= epoch;
 
     printf("Waiting for reading time\n");
-    if(read(clntSock, &time_out, sizeof(int)) < 0)
+    if(read(clntSock, time_input, 4) < 0)
     {
         die("Error at reading time.");
     }
     //time = ntohl(time_out);
-    printf("Thread received time rate: %d\n", time_out);
+    printf("Thread received time rate: %d\n", time_input);
 
     printf("Waiting for reading sampling rate\n");
-    if(read(clntSock, &sampling, sizeof(int)) < 0)
+    if(read(clntSock, sampling_input, 4) < 0)
     {
         die("Error at reading sampling rate.");
     }
     //sampling = ntohl(sampling);
-    printf("Thread received sampling rate: %d\n", sampling);
+    printf("Thread received sampling rate: %d\n", sampling_input);
 
     // If a user wants to send data else where as well...
     // Well, I mean they can download a CSV, but I can't judge right?

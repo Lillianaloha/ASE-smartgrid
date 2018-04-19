@@ -1,15 +1,12 @@
 #include "socket.h"
 
-/*
- * Create a listening socket bound to the given port.
- */
-
 void die(char * message)
 {
     perror(message);
     exit(0);
 }
 
+// Create a listening socket bound to given port.
 int createServerSocket(unsigned short port)
 {
     int servSock;
@@ -76,12 +73,15 @@ ssize_t Send(int sock, const char *buf)
 {
     size_t len = strlen(buf);
     ssize_t res = send(sock, buf, len, 0);
-    if (res != len) {
+    if (res != len) 
+    {
         perror("send() failed");
         return -1;
     }
-    else 
+    else
+    { 
         return res;
+    }
 }
 
 void data_init(struct data * d)
