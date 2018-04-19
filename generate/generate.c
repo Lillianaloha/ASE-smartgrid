@@ -300,6 +300,7 @@ time_t previous;
 	// Sample data now!
 	if(current % sampling == 0)
 	{
+            printf("Begin Reading data\n");
             pthread_rwlock_rdlock(&d -> rwlock);
             sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
     	        d->Va, d->Vb, d->Vc, d->Ia, d->Ib, d->Ic, d->Total_Power, d->Total_FundamentalPower, 
@@ -313,6 +314,7 @@ time_t previous;
             //Send(remoteSock, printData);
         }
     }
+    printf("Listening Thread finished...closing...\n");
     pthread_exit(NULL);
 }
 
