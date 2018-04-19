@@ -21,6 +21,10 @@
 # define ON 1
 # define OFF 0
 
+//Just in case I want someone to set frequency and phase shift
+static int omega = 1;
+static int phi = 60;
+
 //Current Epoch
 time_t epoch;
 
@@ -35,6 +39,7 @@ static int status = ON;
 
 // Contains generator data
 struct data * d;
+
 
 Sigfunc * signal(int signo, Sigfunc *func)
 {
@@ -73,6 +78,7 @@ Sigfunc * signal_intr(int signo, Sigfunc *func)
         return(SIG_ERR);
     return(oact.sa_handler);
 }
+
 // Set Program off... Kill processes and threads now!
 static void breakLoop(int signo)
 {
@@ -83,9 +89,10 @@ void * generateData()
 {
     // For every second...
     // Generate new values...
+    // Omega = 1, Phase = 60 by default
+    // Omega/Phase can be changed through command line arguments  
+
     int t = 1;
-    int w = 1;
-    int phi = 60;
     time_t current;
     time_t previous;
     printf("Data Generator started...\n");
@@ -95,6 +102,7 @@ void * generateData()
 
     while (status)
     {
+	// http://www.ece.k-state.edu//~starret/581/3phase.html
 	previous = current;
 	// Update Current...
 	time(&current);
@@ -117,9 +125,9 @@ void * generateData()
         // Voltage is default 110, +/- 5%    
         // 104.5 - 114.5 Volts
         
-        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi)));
-        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi - 120)));
-        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi + 120)));
+        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi)));
+        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi - 120)));
+        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi + 120)));
 
         // Current 0 - 50 A
         d -> Ia = rand() % 50;
@@ -134,7 +142,7 @@ void * generateData()
         d -> PhaseC_Power = d -> Vc * d -> Ic;
             
 
-        //Reactive Power: Irms * Vrms * 
+        //Reactive Power: Irms * Vrms
         d -> ReactivePower += 1;
         d -> PhaseA_ReactivePower += 1;
         d -> PhaseB_ReactivePower += 1;
@@ -324,6 +332,28 @@ int main(int argc, char **argv)
 	die("Killed by SIGUSR1\n");
     }
 
+    if (argc == 1)
+    {
+        // Need arguments?
+    }
+    // Pass in Server Port
+    else if (argc == 2)
+    {
+        serverPort = atoi(argv[1]);
+    }
+    // Pass in Server Port, omega (frequency)
+    else if (argc == 3)
+    {
+        serverPort = atoi(argv[1]);
+        omega = atoi(argv[2]);
+    }
+    // Pass in Server Port, omega (frequency), phi
+    else
+    {
+        serverPort = atoi(argv[1]);
+        omega = atoi(argv[2]);
+        phi = atoi(argv[3]);
+    }
     // Get Epoch time...to compute elapsed time/time out
     time(&epoch);
     srand(time(NULL));
