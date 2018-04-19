@@ -159,6 +159,7 @@ void * run(void * connection)
     // For later: This is in case a user wants to get the data in real time
     // instead of downloading from CSV from website...
     char remote_ip [15] = "";
+    char port_input [4];
     unsigned remote_port = 0;
     int remoteSock = 0;
     */
@@ -188,10 +189,12 @@ void * run(void * connection)
     time(&current);
     current -= epoch;
 
+//-------------------Get Time------------------------
     printf("Waiting for reading time\n");
     if(read(clntSock, time_input, 4) < 0)
     {
-        die("Error at reading time.");
+        printf("Error at reading time.\n");
+	pthread_exit(NULL);
     }
     printf("Thread received time rate: %s\n", time_input);
     
@@ -203,14 +206,20 @@ void * run(void * connection)
         {
             temp++;
         }
+        else
+        {
+            break;
+        }
     }
     printf("value of time_input is: %s\n", temp);
     time_out = atoi(temp);
 
+//----------------Get Sampling Rate-----------------
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, sampling_input, 4) < 0)
     {
-        die("Error at reading sampling rate.");
+        printf("Error at reading sampling rate.\n");
+	pthread_exit(NULL);
     }
     printf("Thread received sampling rate: %s\n", sampling_input);
     
@@ -222,24 +231,47 @@ void * run(void * connection)
         {
             temp++;
         }
+        else
+        {
+            break;
+        }
     }
     printf("value of time_input is: %s\n", temp);
     sampling = atoi(temp);
 
+//---------------Get Extra Data for direct outward communication----------------
+/*
     // If a user wants to send data else where as well...
     // Well, I mean they can download a CSV, but I can't judge right?
     // The front end will test the validity of input...
-    /*
-    if(read(clntSock, &portNum, sizeof(int)) < 0)
+    
+  
+    if(read(clntSock, port_input, 4) < 0)
     {
-        // No Port Number read...
+        printf("Error at reading external port number.");
+	pthread_exit(NULL);
     }
-    if(read(clntSock, ip, sizeof(ip)) < 0)
+    printf("Thread received sampling rate: %s\n", port_input);
+    
+    //Remove leading 0s...
+    temp = port_input;
+    for(int i = 0; i < 4; i++)
     {
-        // No IP was read
+        if(port_input[i] == '0')
+        {
+            temp++;
+        }
+    }
+    printf("value of time_input is: %s\n", temp);
+    remote_portNum = atoi(temp);
+    
+    if(read(clntSock, remote_ip, sizeof(remote_ip)) < 0)
+    {
+        printf("Error at reading external IP address.");
+	pthread_exit(NULL);
     }
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
-    */
+*/   
 
     while(true)  
     {
@@ -252,8 +284,8 @@ void * run(void * connection)
         current -= epoch;
 	
 	// A second did not pass...
-	if(current != previous)
-	{	
+	if(current == previous)
+	{
             continue;
 	}
 
