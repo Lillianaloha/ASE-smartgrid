@@ -8,7 +8,6 @@
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
 #include <errno.h>
-
 #include "socket.h"
 #include "apue.h"
 
@@ -16,19 +15,19 @@
 # define Vin 110
 # define SQRT2 1.14142
 # define SQRT3 1.73205
-# define THREADS 16
 # define ON 1
 # define OFF 0
+# define THREADS 16
 
-// Configure generator
+// Power Generator
 static int omega = 1;
 static int phi = 60;
 
-// Epoch Time used by generator
-time_t epoch;
-
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
+
+//Current Epoch
+time_t epoch;
 
 //static pthread_t thread_pool[THREADS];
 static int status = ON;
@@ -81,12 +80,33 @@ void * generateData()
     // For every second...
     // Generate new values...
 
-    printf("Data Generator started...\n");
     int t = 0;
+    time_t current;
+    time_t previous;
+    printf("Data Generator started...\n");
+
+    time(&current);
+    current -= epoch;
 
     while (status)
     {
-        pthread_rwlock_wrlock(&d -> rwlock);
+	// http://www.ece.k-state.edu//~starret/581/3phase.html
+	// https://www.electronics-tutorials.ws/accircuits/reactive-power.html
+	previous = current;
+	// Update Current...
+	time(&current);
+    	current -= epoch;
+
+	//If a second hasn't elapsed wait a bit more...
+	if(current == previous)
+	{
+            continue;		
+	}
+	printf("Data being generated\n");
+	//Update Time
+	++t;
+	
+	pthread_rwlock_wrlock(&d -> rwlock);
         // va = \sqrt(2) V_in cos(wt + phi)
         // vb = \sqrt(2) V_in cos(wt + phi - 120)
         // vc = \sqrt(2) V_in cos(wt + phi + 120)
@@ -99,7 +119,6 @@ void * generateData()
         d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi - 120)));
         d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi + 120)));
 
-  
         // Current 0 - 50 A
         d -> Ia = rand() % 50;
         d -> Ib = rand() % 50;
@@ -113,13 +132,14 @@ void * generateData()
         d -> PhaseC_Power = d -> Vc * d -> Ic;
             
 
-        //Reactive Power: Irms * Vrms * 
+        //Reactive Power: Irms * Vrms
         d -> ReactivePower += 1;
         d -> PhaseA_ReactivePower += 1;
         d -> PhaseB_ReactivePower += 1;
         d -> PhaseC_ReactivePower += 1;
         d -> Consumed_Power += 1;
         d -> Sold_Power += 1;
+
         pthread_rwlock_unlock(&d -> rwlock);
     }
     printf("Generator shutting down\n");
@@ -128,8 +148,7 @@ void * generateData()
 
 void * run(void * connection)
 {
-    printf("Thread Running!\n");
-    int ctr = 0;
+    printf("Thread Running!\n");	
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
@@ -248,76 +267,59 @@ void * run(void * connection)
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
 */   
  
-    int Va, Vb, Vc;
-    int Ia, Ib, Ic;
-    int Total_Power, Total_FundamentalPower;
-    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
-    int ReactivePower;
-    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
-    int Consumed_Power, Sold_Power;
- 
     // Start While
-    
-    time(&thread_epoch);
     time(&current);
+    time(&thread_epoch);
     current-= thread_epoch;
-   
+
     while(true)  
     {
-	// Get Previous
+	// Prev is holding last iteration of current
 	previous = current;
-
-	// Update Current
-	time(&current);
-	current -= thread_epoch;
 	
+	// Update and check...
+	time(&current);
+        current -= thread_epoch;
+	
+	// A second did not pass...
 	if(current == previous)
 	{
-
+            continue;
 	}
-
-	if(current >= time_out)
+        //printf("Current is: %ld and Previous is: %ld\n", current, previous);
+	//printf("Start to read, time out is: %d and sampling is: %d\n", time_out, sampling);
+        
+   	// Sample data now!
+	if(current % sampling == 0)
 	{
-
-	}
-
-	if(current % sampling != 0)
-	{
-
-	}
-
-    	pthread_rwlock_rdlock(&d -> rwlock);
-        Va = d -> Va;
-    	Vb = d -> Vb;
-    	Vc = d -> Vc;
-    	Ia = d -> Ia;
-    	Ib = d -> Ib;
-    	Ic = d -> Ic;
-    	Total_Power = d -> Total_Power;
-    	Total_FundamentalPower = d -> Total_FundamentalPower;
-    	PhaseA_Power = d -> PhaseA_Power; 
-    	PhaseB_Power = d -> PhaseB_Power;
-    	PhaseC_Power = d -> PhaseC_Power;
-    	ReactivePower = d -> ReactivePower;
-    	PhaseA_ReactivePower = d -> PhaseA_ReactivePower;
-    	PhaseB_ReactivePower = d -> PhaseB_ReactivePower;
-    	PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
-    	Consumed_Power = d -> Consumed_Power;
-    	Sold_Power = d -> Sold_Power;
-        pthread_rwlock_unlock(&d -> rwlock);
-
-    	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
-    	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
-    	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
-    	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
-    	fprintf(stdout, "%s\n", printData);
-    	Send(clntSock, printData);
-        if(ctr == time_out)
-        {
-            break;
+            printf("Begin Reading data\n");
+            //pthread_rwlock_rdlock(&d -> rwlock);
+            sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
+    	        d->Va, d->Vb, d->Vc, d->Ia, d->Ib, d->Ic, d->Total_Power, d->Total_FundamentalPower, 
+		d->PhaseA_Power, d->PhaseB_Power, d->PhaseC_Power, d->ReactivePower, 
+		d->PhaseA_ReactivePower, d->PhaseB_ReactivePower, d->PhaseC_ReactivePower, 
+		d->Consumed_Power, d->Sold_Power);
+            //pthread_rwlock_unlock(&d -> rwlock);
+            
+            fprintf(stdout, "%s\n", printData);
+            
+            /*
+            if(Send(clntSock, printData) < 0)
+            {
+                printf("Error sending!");
+            }
+            */
+            //send(clntSock, printData, sizeof(printData), 0);
         }
-        ++ctr;   
+
+	// Time is up!
+	if(current >= time_out)
+        {
+            printf("Time is up!\n");
+            break;
+	}
     }
+    printf("Listening Thread complete!\n");
     return NULL;
 }
 
