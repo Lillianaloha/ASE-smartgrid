@@ -144,7 +144,7 @@ void * run(void * serv)
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    int time_out = 0;       //(in seconds)
+    int time = 0;       //(in seconds)
     int sampling = 0;   //(in seconds)
     
     printf("Waiting for reading time\n");
@@ -152,7 +152,7 @@ void * run(void * serv)
     {
         die("Error at reading time.");
     }
-    printf("Thread received time rate: %d\n", time_out);
+    printf("Thread received time rate: %d\n", time);
 
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, &sampling, sizeof(int)) < 0)
@@ -232,7 +232,7 @@ void * run(void * serv)
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
-        if(ctr == time_out)
+        if(ctr == time)
         {
             break;
         }
