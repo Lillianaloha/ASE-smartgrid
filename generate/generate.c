@@ -7,8 +7,6 @@
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
-#include <errno.h>
-
 #include "socket.h"
 #include "apue.h"
 
@@ -16,21 +14,18 @@
 # define Vin 110
 # define SQRT2 1.14142
 # define SQRT3 1.73205
-# define THREADS 16
 # define ON 1
 # define OFF 0
+# define THREADS 16
 
-// Configure generator
+//Customize Generator
 static int omega = 1;
 static int phi = 60;
-
-// Epoch Time used by generator
-time_t epoch;
 
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
-//static pthread_t thread_pool[THREADS];
+static pthread_t thread_pool[THREADS];
 static int status = ON;
 struct data * d;
 
@@ -82,10 +77,11 @@ void * generateData()
     // Generate new values...
 
     printf("Data Generator started...\n");
-    int t = 0;
+    int t = 1;
 
     while (status)
     {
+
         pthread_rwlock_wrlock(&d -> rwlock);
         // va = \sqrt(2) V_in cos(wt + phi)
         // vb = \sqrt(2) V_in cos(wt + phi - 120)
@@ -120,6 +116,7 @@ void * generateData()
         d -> PhaseC_ReactivePower += 1;
         d -> Consumed_Power += 1;
         d -> Sold_Power += 1;
+
         pthread_rwlock_unlock(&d -> rwlock);
     }
     printf("Generator shutting down\n");
@@ -128,43 +125,39 @@ void * generateData()
 
 void * run(void * connection)
 {
-    printf("Thread Running!\n");
-    int ctr = 0;
+    printf("Thread Running!\n");	
+    /*
+    // Get Client Socket
+    long temp = (long) client;
+    //This socket connects generator and master computer...
+    int clntSock = (int) temp;
+    */
+
+
+    //Obtain server socket and listen for clients
+    int servSock = (long) connection;
+    struct sockaddr_in clntAddr;
+    unsigned int clntLen = sizeof(clntAddr);
+    int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
+    if (clntSock < 0)
+    {
+        die("accept() failed");
+    }
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
+    char printData [255] = "";
+    unsigned int ctr = 0;
+    
     char time_input [4];
     char sampling_input[4];
-    char * temp;        //Shift to remove padding on 0s
-    char printData [1000];
-
+    unsigned int time_out = 0;   //(in seconds)
+    unsigned int sampling = 0;   //(in seconds)
+    char * temp;
     time_t current;
     time_t thread_epoch;
     time_t previous;
 
-    /*
-    struct sockaddr_in clntAddr;
-    unsigned int clntLen = sizeof(clntAddr);
-    int servSock = (long) connection;
-    int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
-    if (clntSock < 0)
-    {
-        printf("accept() failed\n");
-	pthread_exit(NULL);
-    }    
-    */
-
-    
-    // Get Client Socket
-    //This socket connects generator and master computer...
-    int clntSock = (long) connection;
-    
-
-    // Get time to read
-    // Get sampling rate: 1 reading per second, 2 second, etc.
-    unsigned int time_out = 0;           //(in seconds)
-    unsigned int sampling = 0;           //(in seconds)
-    
 //-------------------Get Time------------------------
     printf("Waiting for reading time\n");
     if(read(clntSock, time_input, 4) < 0)
@@ -247,7 +240,7 @@ void * run(void * connection)
     }
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
 */   
- 
+
     int Va, Vb, Vc;
     int Ia, Ib, Ic;
     int Total_Power, Total_FundamentalPower;
@@ -257,36 +250,20 @@ void * run(void * connection)
     int Consumed_Power, Sold_Power;
  
     // Start While
-    
     time(&thread_epoch);
     time(&current);
     current-= thread_epoch;
-   
+
     while(true)  
-    {
-	// Get Previous
-	previous = current;
-
-	// Update Current
-	time(&current);
-	current -= thread_epoch;
-	
-	if(current == previous)
-	{
-
-	}
-
-	if(current >= time_out)
-	{
-
-	}
-
-	if(current % sampling != 0)
-	{
-
-	}
-
-    	pthread_rwlock_rdlock(&d -> rwlock);
+    {   
+        // Hold previous time
+        previous = current;
+       
+        // Get Current Time
+        time(&current);
+        current-= thread_epoch;
+    	
+        pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
     	Vb = d -> Vb;
     	Vc = d -> Vc;
@@ -325,37 +302,13 @@ int main(int argc, char **argv)
 {
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
-	die("CTRL + C failed\n");
+	die("CTRL + C failed");
     }
 
     //Ignore signal...
     if(signal(SIGUSR1, NULL) == SIG_ERR)
     {
 
-    }
-
-    // Command Line Arguments...
-    if (argc == 1)
-    {
-        // Need arguments?
-    }
-    // Pass in Server Port
-    else if (argc == 2)
-    {
-        serverPort = atoi(argv[1]);
-    }
-    // Pass in Server Port, omega (frequency)
-    else if (argc == 3)
-    {
-        serverPort = atoi(argv[1]);
-        omega = atoi(argv[2]);
-    }
-    // Pass in Server Port, omega (frequency), phi
-    else
-    {
-        serverPort = atoi(argv[1]);
-        omega = atoi(argv[2]);
-        phi = atoi(argv[3]);
     }
 
     srand(time(NULL));
@@ -372,13 +325,17 @@ int main(int argc, char **argv)
     }
     data_init(d);
 
-    printf("Smart Meter Program Initialized! Clock initialized!\n");
-    time(&epoch);
-
+    printf("Smart Meter Program Initialized!\n");
     pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
-    
-    while(status)
+   
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
+    }
+
+    /*
+    while(flag)
     {
         // wait for a client to connect
         struct sockaddr_in clntAddr;
@@ -386,26 +343,27 @@ int main(int argc, char **argv)
         int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
         if (clntSock < 0)
         {
-            if(errno == EINTR)
-            {
-                continue;
-            }
-            status = OFF;
-            break;
+            die("accept() failed");
         }
         
         //Spawn a new thread
-        pthread_t reader;
-	pthread_create(&reader, NULL, run, (void *) (long) clntSock);
-        pthread_detach(reader);
-    }// for (;;)
-        
+        pthread_t t1;
+	long client = (long) clntSock;
+	pthread_create(&t1, NULL, run, (void *) client);
+        pthread_join(t1, NULL);
+    }*/
+    // for (;;)
+      
+    
     //Clean up Program...
-    printf("Program Cleaning up\n");
     pthread_join(generatorThread, NULL);
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_join(thread_pool[i], NULL);
+    }
+
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
     munmap(d, sizeof(struct data));
-
     return 0;
 }
