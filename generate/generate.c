@@ -7,8 +7,6 @@
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
-#include <errno.h>
-
 #include "socket.h"
 #include "apue.h"
 
@@ -20,11 +18,15 @@
 # define ON 1
 # define OFF 0
 
+// Customize AC
+int omega = 1;
+int phi = 60;
+
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
-static pthread_t thread_pool[THREADS];
-static int status = ON;
+//static pthread_t thread_pool[THREADS];
+static int status = 1;
 struct data * d;
 
 Sigfunc * signal_intr(int signo, Sigfunc *func)
@@ -76,8 +78,6 @@ void * generateData()
 
     printf("Data Generator started...\n");
     int t = 0;
-    int omega = 1;
-    int phi = 60;
 
     while (status)
     {
@@ -125,12 +125,12 @@ void * generateData()
 void * run(void * serv)
 {
     printf("Thread Running!\n");	
-    /*
+    
     //This socket connects generator and master computer...
-    int clntSock = (long) serv;
-    */
+    int clntSock = (long) serv; 
 
     //This socket connects generator and master computer...
+    /*
     int servSock = (long) serv;
     struct sockaddr_in clntAddr;
     unsigned int clntLen = sizeof(clntAddr);
@@ -139,66 +139,29 @@ void * run(void * serv)
     {
         die("accept() failed");
     }
-
+    */
+    
     char printData [255] = "";
     int ctr = 0;
-    
+
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    int time_out = 0;		//(in seconds)
-    int sampling = 0;		//(in seconds)
-    char time_input [4];
-    char sampling_input[4];
-    char * temp;        	//Shift to remove padding on 0s
+    int time = 0;       //(in seconds)
+    int sampling = 0;   //(in seconds)
     
-//-------------------Get Time------------------------
     printf("Waiting for reading time\n");
-    if(read(clntSock, time_input, 4) < 0)
+    if(read(clntSock, &time, sizeof(int)) < 0)
     {
-        printf("Error at reading time.\n");
-	pthread_exit(NULL);
+        die("Error at reading time.");
     }
-    printf("Thread received time rate: %s\n", time_input);
-    
-    //Remove leading 0s...
-    temp = time_input;
-    for(int i = 0; i < 4; i++)
-    {
-        if(time_input[i] == '0')
-        {
-            temp++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    printf("value of time_input is: %s\n", temp);
-    time_out = atoi(temp);
-//----------------Get Sampling Rate-----------------
+    printf("Thread received time rate: %d\n", time);
+
     printf("Waiting for reading sampling rate\n");
-    if(read(clntSock, sampling_input, 4) < 0)
+    if(read(clntSock, &sampling, sizeof(int)) < 0)
     {
-        printf("Error at reading sampling rate.\n");
-	pthread_exit(NULL);
+        die("Error at reading sampling rate.");
     }
-    printf("Thread received sampling rate: %s\n", sampling_input);
-    
-    //Remove leading 0s...
-    temp = sampling_input;
-    for(int i = 0; i < 4; i++)
-    {
-        if(sampling_input[i] == '0')
-        {
-            temp++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    printf("value of time_input is: %s\n", temp);
-    sampling = atoi(temp);
+    printf("Thread received sampling rate: %d\n", sampling);
 
 //---------------Get Extra Data for direct outward communication----------------
 /*
@@ -270,7 +233,7 @@ void * run(void * serv)
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
-        if(ctr == time_out)
+        if(ctr == time)
         {
             break;
         }
@@ -292,7 +255,6 @@ int main(int argc, char **argv)
 
     }
     
-    /*
     // Command Line Arguments...
     if (argc == 1)
     {
@@ -316,7 +278,7 @@ int main(int argc, char **argv)
         omega = atoi(argv[2]);
         phi = atoi(argv[3]);
     }
-    */
+    
     srand(time(NULL));
 
     //Listen for incoming requests
@@ -335,12 +297,14 @@ int main(int argc, char **argv)
     pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
    
+    /*
     for (int i = 0; i < THREADS; i++)
     {
         pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
     }
+    */
 
-    /*
+    
     while(status)
     {
         // wait for a client to connect
@@ -349,11 +313,6 @@ int main(int argc, char **argv)
         int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
         if (clntSock < 0)
         {
-            if(errno == EINTR)
-            {
-                continue;
-            }
-            status = OFF;
             break;
         }
         
@@ -362,14 +321,9 @@ int main(int argc, char **argv)
 	pthread_create(&reader, NULL, run, (void *) (long) clntSock);
         pthread_detach(reader);
     }
-    */    
     
     //Clean up Program...
     pthread_join(generatorThread, NULL);
-    for (int i = 0; i < THREADS; i++)
-    {
-        pthread_join(thread_pool[i], NULL);
-    }
 
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
