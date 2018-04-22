@@ -77,10 +77,30 @@ void * generateData()
     // Generate new values...
 
     printf("Data Generator started...\n");
-    int t = 0;
+    int t = 0;    
+    time_t current;
+    time_t previous;
+    time(&current);
+    current -= epoch;
 
     while (status)
     {
+        // http://www.ece.k-state.edu//~starret/581/3phase.html
+	// https://www.electronics-tutorials.ws/accircuits/reactive-power.html
+	previous = current;
+	// Update Current...
+	time(&current);
+    	current -= epoch;
+
+	//If a second hasn't elapsed wait a bit more...
+	if(current == previous)
+	{
+            continue;		
+	}
+	printf("Data being generated\n");
+	//Update Time
+	++t;
+	
         pthread_rwlock_wrlock(&d -> rwlock);
 
         // va = \sqrt(2) V_in cos(wt + phi)
@@ -126,12 +146,12 @@ void * generateData()
 void * run(void * serv)
 {
     printf("Thread Running!\n");	
-    /*
+    
     //This socket connects generator and master computer...
     int clntSock = (long) serv;
-    */
-
+    
     //This socket connects generator and master computer...
+    /*
     int servSock = (long) serv;
     struct sockaddr_in clntAddr;
     unsigned int clntLen = sizeof(clntAddr);
@@ -140,9 +160,14 @@ void * run(void * serv)
     {
         die("accept() failed");
     }
+    */
 
     char printData [255] = "";
     int ctr = 0;
+    time_t current;
+    time_t thread_epoch;
+    time_t previous;
+
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
     int time = 0;       //(in seconds)
@@ -204,8 +229,30 @@ void * run(void * serv)
     int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
     int Consumed_Power, Sold_Power;
 
+    // Start While
+    time(&current);
+    time(&thread_epoch);
+    current-= thread_epoch;
+
     while(true)  
-    {  
+    {
+        // Prev is holding last iteration of current
+	previous = current;
+	
+	// Update and check...
+	time(&current);
+        current -= thread_epoch;
+	
+	// A second did not pass...
+	if(current == previous)
+	{
+            continue;
+	}
+
+        if(current % sampling != 0)
+	{
+	    continue;
+        }
     	pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
     	Vb = d -> Vb;
@@ -232,11 +279,13 @@ void * run(void * serv)
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
-        if(ctr == time)
+
+	// Time is up!
+	if(current >= time)
         {
+            printf("Time is up!\n");
             break;
-        }
-        ++ctr;   
+	}  
     }
     return NULL;
 }
@@ -296,13 +345,7 @@ int main(int argc, char **argv)
     pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
    
-    for (int i = 0; i < THREADS; i++)
-    {
-        pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
-    }
-
-    /*
-    while(flag)
+    while(status)
     {
         // wait for a client to connect
         struct sockaddr_in clntAddr;
@@ -310,23 +353,22 @@ int main(int argc, char **argv)
         int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
         if (clntSock < 0)
         {
-            die("accept() failed");
+            if(errno == EINTR)
+            {
+                continue;
+            }
+            status = OFF;
+            break;
         }
         
         //Spawn a new thread
-        pthread_t t1;
-	long client = (long) clntSock;
-	pthread_create(&t1, NULL, run, (void *) client);
-        pthread_join(t1, NULL);
+        pthread_t reader;
+	pthread_create(&reader, NULL, run, (void *) (long) clntSock);
+        pthread_detach(reader);
     }
-    */    
     
     //Clean up Program...
     pthread_join(generatorThread, NULL);
-    for (int i = 0; i < THREADS; i++)
-    {
-        pthread_join(thread_pool[i], NULL);
-    }
 
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
