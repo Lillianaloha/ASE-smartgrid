@@ -129,7 +129,7 @@ void * run(void * serv)
     */
 
     //This socket connects generator and master computer...
-    int servSock = (long) temp;
+    int servSock = (long) serv;
     char printData [255] = "";
     int ctr = 0;
 
@@ -232,7 +232,7 @@ void * run(void * serv)
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
-        if(ctr == time)
+        if(ctr == time_out)
         {
             break;
         }
