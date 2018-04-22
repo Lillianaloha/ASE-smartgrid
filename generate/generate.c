@@ -7,6 +7,8 @@
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
+#include <errno.h>
+
 #include "socket.h"
 #include "apue.h"
 
@@ -18,6 +20,9 @@
 # define ON 1
 # define OFF 0
 
+// Epoch time
+time_t epoch;
+
 // Modify AC Power
 static int omega = 1;
 static int phi = 60;
@@ -25,7 +30,7 @@ static int phi = 60;
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
-static pthread_t thread_pool[THREADS];
+// static pthread_t thread_pool[THREADS];
 static int status = ON;
 struct data * d;
 
@@ -76,31 +81,33 @@ void * generateData()
     // For every second...
     // Generate new values...
 
-    printf("Data Generator started...\n");
-    int t = 0;    
+    int t = 0;
     time_t current;
     time_t previous;
+    printf("Data Generator started...\n");
+
     time(&current);
     current -= epoch;
-
     while (status)
     {
-        // http://www.ece.k-state.edu//~starret/581/3phase.html
+	// http://www.ece.k-state.edu//~starret/581/3phase.html
 	// https://www.electronics-tutorials.ws/accircuits/reactive-power.html
 	previous = current;
 	// Update Current...
 	time(&current);
     	current -= epoch;
-
+	
 	//If a second hasn't elapsed wait a bit more...
+	/*	
 	if(current == previous)
 	{
             continue;		
 	}
 	printf("Data being generated\n");
+	*/	
 	//Update Time
 	++t;
-	
+
         pthread_rwlock_wrlock(&d -> rwlock);
 
         // va = \sqrt(2) V_in cos(wt + phi)
@@ -164,21 +171,22 @@ void * run(void * serv)
 
     char printData [255] = "";
     int ctr = 0;
+
     time_t current;
-    time_t thread_epoch;
     time_t previous;
+    time_t thread_epoch;
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
-    int time = 0;       //(in seconds)
-    int sampling = 0;   //(in seconds)
+    int time_out = 0;       //(in seconds)
+    int sampling = 0;       //(in seconds)
     
     printf("Waiting for reading time\n");
-    if(read(clntSock, &time, sizeof(int)) < 0)
+    if(read(clntSock, &time_out, sizeof(int)) < 0)
     {
         die("Error at reading time.");
     }
-    printf("Thread received time rate: %d\n", time);
+    printf("Thread received time rate: %d\n", time_out);
 
     printf("Waiting for reading sampling rate\n");
     if(read(clntSock, &sampling, sizeof(int)) < 0)
@@ -235,8 +243,8 @@ void * run(void * serv)
     current-= thread_epoch;
 
     while(true)  
-    {
-        // Prev is holding last iteration of current
+    {  
+	// Prev is holding last iteration of current
 	previous = current;
 	
 	// Update and check...
@@ -244,15 +252,11 @@ void * run(void * serv)
         current -= thread_epoch;
 	
 	// A second did not pass...
-	if(current == previous)
-	{
-            continue;
-	}
+	//if(current == previous)
+	//{
+        //    continue;
+	//}
 
-        if(current % sampling != 0)
-	{
-	    continue;
-        }
     	pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
     	Vb = d -> Vb;
@@ -279,20 +283,18 @@ void * run(void * serv)
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
-
-	// Time is up!
-	if(current >= time)
+        if(ctr == time_out)
         {
-            printf("Time is up!\n");
             break;
-	}  
+        }
+        ++ctr;   
     }
     return NULL;
 }
 
 int main(int argc, char **argv)
 {
-    if(signal(SIGINT, &breakLoop) == SIG_ERR)
+    if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
 	die("CTRL + C failed");
     }
@@ -327,8 +329,6 @@ int main(int argc, char **argv)
         phi = atoi(argv[3]);
     }
     
-    srand(time(NULL));
-
     //Listen for incoming requests
     int servSock = createServerSocket(serverPort);
 
@@ -341,7 +341,9 @@ int main(int argc, char **argv)
     }
     data_init(d);
 
-    printf("Smart Meter Program Initialized!\n");
+    printf("Smart Meter Program Initialized! Clock initialized\n");
+    
+    srand(time(&epoch));
     pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
    
