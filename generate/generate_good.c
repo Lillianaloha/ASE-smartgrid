@@ -15,12 +15,18 @@
 # define SQRT2 1.14142
 # define SQRT3 1.73205
 # define THREADS 16
+# define ON 1
+# define OFF 0
+
+// Modify AC Power
+static int omega = 1;
+static int phi = 60;
 
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
 static pthread_t thread_pool[THREADS];
-static int flag = 1;
+static int status = ON;
 struct data * d;
 
 Sigfunc * signal_intr(int signo, Sigfunc *func)
@@ -62,7 +68,7 @@ Sigfunc * signal(int signo, Sigfunc *func)
 
 static void breakLoop(int signo)
 {
-    flag = 0;
+    status = OFF;
 }
 
 void * generateData()
@@ -71,14 +77,12 @@ void * generateData()
     // Generate new values...
 
     printf("Data Generator started...\n");
-    int t = 1;
-    int w = 1;
-    int phi = 60;
+    int t = 0;
 
-    while (flag)
+    while (status)
     {
-        // pthread_mutex_lock(&(d -> mutex));
         pthread_rwlock_wrlock(&d -> rwlock);
+
         // va = \sqrt(2) V_in cos(wt + phi)
         // vb = \sqrt(2) V_in cos(wt + phi - 120)
         // vc = \sqrt(2) V_in cos(wt + phi + 120)
@@ -87,9 +91,9 @@ void * generateData()
         // Voltage is default 110, +/- 5%    
         // 104.5 - 114.5 Volts
         
-        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi)));
-        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi - 120)));
-        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( w * t + phi + 120)));
+        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi)));
+        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi - 120)));
+        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi + 120)));
 
   
         // Current 0 - 50 A
@@ -113,7 +117,6 @@ void * generateData()
         d -> Consumed_Power += 1;
         d -> Sold_Power += 1;
 
-        //pthread_mutex_unlock(&(d -> mutex));
         pthread_rwlock_unlock(&d -> rwlock);
     }
     printf("Generator shutting down\n");
@@ -130,18 +133,16 @@ void * run(void * serv)
 
     //This socket connects generator and master computer...
     int servSock = (long) serv;
-    char printData [255] = "";
-    int ctr = 0;
-
     struct sockaddr_in clntAddr;
     unsigned int clntLen = sizeof(clntAddr);
     int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
-
     if (clntSock < 0)
     {
         die("accept() failed");
     }
 
+    char printData [255] = "";
+    int ctr = 0;
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
     int time = 0;       //(in seconds)
@@ -159,7 +160,6 @@ void * run(void * serv)
     {
         die("Error at reading sampling rate.");
     }
-    //sampling = ntohl(sampling);
     printf("Thread received sampling rate: %d\n", sampling);
 
 //---------------Get Extra Data for direct outward communication----------------
@@ -254,7 +254,6 @@ int main(int argc, char **argv)
 
     }
     
-    /*
     // Command Line Arguments...
     if (argc == 1)
     {
@@ -278,7 +277,7 @@ int main(int argc, char **argv)
         omega = atoi(argv[2]);
         phi = atoi(argv[3]);
     }
-    */
+    
     srand(time(NULL));
 
     //Listen for incoming requests
@@ -320,7 +319,6 @@ int main(int argc, char **argv)
 	pthread_create(&t1, NULL, run, (void *) client);
         pthread_join(t1, NULL);
     }
-    // for (;;)
     */    
     
     //Clean up Program...
