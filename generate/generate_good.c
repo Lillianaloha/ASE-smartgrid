@@ -20,9 +20,23 @@
 unsigned short serverPort = 8001;
 
 static pthread_t thread_pool[THREADS];
-char ipAddress [15] = "127.0.0.1";
 static int flag = 1;
 struct data * d;
+
+Sigfunc * signal_intr(int signo, Sigfunc *func)
+{
+    struct sigaction    act, oact;
+
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+#ifdef SA_INTERRUPT
+    act.sa_flags |= SA_INTERRUPT;
+#endif
+    if (sigaction(signo, &act, &oact) < 0)
+        return(SIG_ERR);
+    return(oact.sa_handler);
+}
 
 Sigfunc * signal(int signo, Sigfunc *func)
 {
@@ -62,9 +76,7 @@ void * generateData()
     int phi = 60;
 
     while (flag)
-
     {
-
         // pthread_mutex_lock(&(d -> mutex));
         pthread_rwlock_wrlock(&d -> rwlock);
         // va = \sqrt(2) V_in cos(wt + phi)
@@ -112,18 +124,15 @@ void * run(void * serv)
 {
     printf("Thread Running!\n");	
     /*
-    // Get Client Socket
-    long temp = (long) client;
     //This socket connects generator and master computer...
-    int clntSock = (int) temp;
+    int clntSock = (long) serv;
     */
 
-    // Get Client Socket
-    long temp = (long) serv;
     //This socket connects generator and master computer...
-    int servSock = (int) temp;
+    int servSock = (long) serv;
+    char printData [255] = "";
+    int ctr = 0;
 
-      
     struct sockaddr_in clntAddr;
     unsigned int clntLen = sizeof(clntAddr);
     int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
@@ -143,7 +152,6 @@ void * run(void * serv)
     {
         die("Error at reading time.");
     }
-    //time = ntohl(time);
     printf("Thread received time rate: %d\n", time);
 
     printf("Waiting for reading sampling rate\n");
@@ -154,20 +162,39 @@ void * run(void * serv)
     //sampling = ntohl(sampling);
     printf("Thread received sampling rate: %d\n", sampling);
 
-    //If a user wants to send data offline...read it now
-    /*
-    char ip [15] = "";
-    unsigned short portNum;
-    if(read(clntSock, &portNum, sizeof(unsigned short)) < 0)
+//---------------Get Extra Data for direct outward communication----------------
+/*
+    // If a user wants to send data else where as well...
+    // Well, I mean they can download a CSV, but I can't judge right?
+    // The front end will test the validity of input...
+    
+  
+    if(read(clntSock, port_input, 4) < 0)
     {
-        // No Port Number read...
+        printf("Error at reading external port number.");
+	pthread_exit(NULL);
     }
-    if(read(clntSock, &ip, sizeof(ip)) < 0)
+    printf("Thread received sampling rate: %s\n", port_input);
+    
+    //Remove leading 0s...
+    temp = port_input;
+    for(int i = 0; i < 4; i++)
     {
-        // No IP was read
+        if(port_input[i] == '0')
+        {
+            temp++;
+        }
     }
-    // I will assume that the web app checked IP/Port for me    
-    */
+    printf("value of time_input is: %s\n", temp);
+    remote_portNum = atoi(temp);
+    
+    if(read(clntSock, remote_ip, sizeof(remote_ip)) < 0)
+    {
+        printf("Error at reading external IP address.");
+	pthread_exit(NULL);
+    }
+    remoteSock = createClientSocket(remote_ip, remote_portNum);      
+*/   
 
     int Va, Vb, Vc;
     int Ia, Ib, Ic;
@@ -177,20 +204,8 @@ void * run(void * serv)
     int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
     int Consumed_Power, Sold_Power;
 
-    // Connect to Gateway Computer (ONLINE)
-    // Connet to other Computer (OFFLINE)
-    // int gatewaySock = createClientSocket(ipAddress, port);
-
-    // Read the Data, get local size
-    // Repeat until time is up!
-
-    // Print the data
-    // {00000000110,00000000011,...,...,}
-    char printData [255] = "";
-    int ctr = 0;
     while(true)  
     {  
-	//pthread_mutex_lock(&(d -> mutex));
     	pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
     	Vb = d -> Vb;
@@ -209,7 +224,6 @@ void * run(void * serv)
     	PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
     	Consumed_Power = d -> Consumed_Power;
     	Sold_Power = d -> Sold_Power;
-    	//pthread_mutex_unlock(&(d -> mutex));
         pthread_rwlock_unlock(&d -> rwlock);
 
     	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
@@ -239,7 +253,32 @@ int main(int argc, char **argv)
     {
 
     }
-
+    
+    /*
+    // Command Line Arguments...
+    if (argc == 1)
+    {
+        // Need arguments?
+    }
+    // Pass in Server Port
+    else if (argc == 2)
+    {
+        serverPort = atoi(argv[1]);
+    }
+    // Pass in Server Port, omega (frequency)
+    else if (argc == 3)
+    {
+        serverPort = atoi(argv[1]);
+        omega = atoi(argv[2]);
+    }
+    // Pass in Server Port, omega (frequency), phi
+    else
+    {
+        serverPort = atoi(argv[1]);
+        omega = atoi(argv[2]);
+        phi = atoi(argv[3]);
+    }
+    */
     srand(time(NULL));
 
     //Listen for incoming requests
@@ -282,7 +321,7 @@ int main(int argc, char **argv)
         pthread_join(t1, NULL);
     }
     // for (;;)
-     */    
+    */    
     
     //Clean up Program...
     pthread_join(generatorThread, NULL);
@@ -293,7 +332,6 @@ int main(int argc, char **argv)
 
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
-    free(d);
     munmap(d, sizeof(struct data));
     return 0;
 }
