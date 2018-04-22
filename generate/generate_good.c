@@ -7,6 +7,8 @@
 #include <sys/mman.h>   // shared memory
 #include <signal.h>     // signal()
 #include <unistd.h>     // fork()
+#include <errno.h>
+
 #include "socket.h"
 #include "apue.h"
 
@@ -25,7 +27,7 @@ static int phi = 60;
 // Lily...Connect to this Port
 unsigned short serverPort = 8001;
 
-static pthread_t thread_pool[THREADS];
+// static pthread_t thread_pool[THREADS];
 static int status = ON;
 struct data * d;
 
@@ -126,12 +128,12 @@ void * generateData()
 void * run(void * serv)
 {
     printf("Thread Running!\n");	
-    /*
+    
     //This socket connects generator and master computer...
     int clntSock = (long) serv;
-    */
-
+    
     //This socket connects generator and master computer...
+    /*
     int servSock = (long) serv;
     struct sockaddr_in clntAddr;
     unsigned int clntLen = sizeof(clntAddr);
@@ -140,6 +142,7 @@ void * run(void * serv)
     {
         die("accept() failed");
     }
+    */
 
     char printData [255] = "";
     int ctr = 0;
@@ -296,13 +299,7 @@ int main(int argc, char **argv)
     pthread_t generatorThread;
     pthread_create(&generatorThread, NULL, &generateData, NULL);
    
-    for (int i = 0; i < THREADS; i++)
-    {
-        pthread_create(&thread_pool[i], NULL, run, (void *)(long) servSock);
-    }
-
-    /*
-    while(flag)
+    while(status)
     {
         // wait for a client to connect
         struct sockaddr_in clntAddr;
@@ -310,23 +307,22 @@ int main(int argc, char **argv)
         int clntSock = accept(servSock, (struct sockaddr *)&clntAddr, &clntLen);
         if (clntSock < 0)
         {
-            die("accept() failed");
+            if(errno == EINTR)
+            {
+                continue;
+            }
+            status = OFF;
+            break;
         }
         
         //Spawn a new thread
-        pthread_t t1;
-	long client = (long) clntSock;
-	pthread_create(&t1, NULL, run, (void *) client);
-        pthread_join(t1, NULL);
+        pthread_t reader;
+	pthread_create(&reader, NULL, run, (void *) (long) clntSock);
+        pthread_detach(reader);
     }
-    */    
     
     //Clean up Program...
     pthread_join(generatorThread, NULL);
-    for (int i = 0; i < THREADS; i++)
-    {
-        pthread_join(thread_pool[i], NULL);
-    }
 
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
