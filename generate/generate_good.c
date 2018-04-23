@@ -98,13 +98,13 @@ void * generateData()
     	current -= epoch;
 	
 	//If a second hasn't elapsed wait a bit more...
-	/*	
+		
 	if(current == previous)
 	{
             continue;		
 	}
 	printf("Data being generated\n");
-	*/	
+		
 	//Update Time
 	++t;
 
@@ -145,6 +145,7 @@ void * generateData()
         d -> Sold_Power += 1;
 
         pthread_rwlock_unlock(&d -> rwlock);
+        printf("Data finished generating\n");
     }
     printf("Generator shutting down\n");
     return NULL;

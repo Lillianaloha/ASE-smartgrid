@@ -98,15 +98,15 @@ void * generateData()
     	current -= epoch;
 	
 	//If a second hasn't elapsed wait a bit more...
-
+		
 	if(current == previous)
 	{
             continue;		
 	}
-	
+	printf("Data being generated\n");
+		
 	//Update Time
 	++t;
-        printf("Data is being generated\n");
 
         pthread_rwlock_wrlock(&d -> rwlock);
 
@@ -143,7 +143,7 @@ void * generateData()
         d -> PhaseC_ReactivePower += 1;
         d -> Consumed_Power += 1;
         d -> Sold_Power += 1;
-        
+
         pthread_rwlock_unlock(&d -> rwlock);
         printf("Data finished generating\n");
     }
@@ -170,8 +170,6 @@ void * run(void * serv)
     }
     */
 
-    // Note to self: Maye wrap fiel descriptor around socket?
-
     char printData [255] = "";
     int ctr = 0;
 
@@ -184,12 +182,14 @@ void * run(void * serv)
     int time_out = 0;       //(in seconds)
     int sampling = 0;       //(in seconds)
     
+    printf("Waiting for reading time\n");
     if(read(clntSock, &time_out, sizeof(int)) < 0)
     {
         die("Error at reading time.");
     }
     printf("Thread received time rate: %d\n", time_out);
 
+    printf("Waiting for reading sampling rate\n");
     if(read(clntSock, &sampling, sizeof(int)) < 0)
     {
         die("Error at reading sampling rate.");
@@ -253,14 +253,10 @@ void * run(void * serv)
         current -= thread_epoch;
 	
 	// A second did not pass...
-	if(current == previous)
-	{
-            continue;
-	}
-        if(current%sampling != 0)
-        {
-            continue;
-        }
+	//if(current == previous)
+	//{
+        //    continue;
+	//}
 
     	pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
@@ -287,42 +283,27 @@ void * run(void * serv)
     	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
     	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
     	fprintf(stdout, "%s\n", printData);
-
-    	if(Send(clntSock, printData) < 0)
-        {
-            printf("Send Error, break out of loop!\n");
-            break;
-        }
-
-        if(ctr >= time_out)
+    	Send(clntSock, printData);
+        if(ctr == time_out)
         {
             break;
         }
         ++ctr;   
     }
-    fprintf(stderr, "Listening Thread finished!\n");
-    close(clntSock);
     return NULL;
 }
 
 int main(int argc, char **argv)
 {
-    // Ignore SIGPIPE so that we don't terminate when we call
-    // send() on a disconnected socket.
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-    {
-        die("signal() failed\n");
-    }
-
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
-	die("CTRL + C failed\n");
+	die("CTRL + C failed");
     }
 
     //Ignore signal...
-    if(signal(SIGUSR1, SIG_IGN) == SIG_ERR)
+    if(signal(SIGUSR1, NULL) == SIG_ERR)
     {
-        die("signal() failed\n");
+
     }
     
     // Command Line Arguments...
