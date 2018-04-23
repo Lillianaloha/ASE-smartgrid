@@ -26,8 +26,8 @@
 					<ul>
 						<li> <a href="../index.html">Home</a> </li>
 						<li> <a href="success.php">Search</a> </li>
-                        <li class="active"> <a href="about.html">About Us</a> </li>
-						<li> <a href="future.html">Future</a> </li>
+                        <li class="active"> <a href="about.php">About Us</a> </li>
+						<li> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -73,8 +73,8 @@
 			<p>
 				<a href="../index.html">Home</a> |
 				<a href="success.php">Search</a> |
-				<a href="about.html">About Us</a> |
-				<a href="future.html">Future</a> |
+				<a href="about.php">About Us</a> |
+				<a href="future.php">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu
