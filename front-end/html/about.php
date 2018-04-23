@@ -26,7 +26,7 @@
 					<ul>
 						<li> <a href="../index.html">Home</a> </li>
 						<li> <a href="success.php">Search</a> </li>
-                        <li class="active"> <a href="about.php">About Us</a> </li>
+                        			<li class="active"> <a href="about.php">About Us</a> </li>
 						<li> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
@@ -60,7 +60,7 @@
 					1. Generate data on gateway (Offline scenario) <br>
 					2. Generating synthetic “smart meter” data from each node (Online Scenario) <br>
 					3. Assign a table or database for each registered group/team. Database on the server <br>
-                    4. Storage and Retrieval of data from database located at the gateway <br>
+                    			4. Storage and Retrieval of data from database located at the gateway <br>
 
 						
 					</p>
