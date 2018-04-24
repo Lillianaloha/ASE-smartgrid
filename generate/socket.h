@@ -15,7 +15,9 @@ int createClientSocket(char * ip, unsigned int port);
 int createServerSocket(unsigned short port);
 ssize_t Send(int sock, const char *buf);
 void die(char * message);
-bool isAnomaly(int x);
+int randomize(int input, double flexibility);
+int volts();
+int solarPanel();
 
 struct data
 {

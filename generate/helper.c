@@ -32,18 +32,38 @@ void data_init(struct data * d)
     d -> Sold_Power = 0;
 }
 
-bool isAnomaly(int x)
+// Volts are 105 - 115 Volts
+// rand() % range + min
+int volts()
 {
-    double testCase = (double) x;    
-    double comparison = (testCase * validMargin);
+return (int) rand() % 115 + 105;	
+}
 
-    if(testCase > comparison)
+int solarPanel()
+{
+return (int) rand() % 265 + 200;	
+}
+
+
+//By time of day, afternoon increase the input and morning decrease the input.
+int randomize(int input, double flexibility)
+{
+    time_t currentTime;
+    struct tm * startTime;
+    
+    //Get the current time
+    currentTime = time(NULL);
+    
+    //Convert it to Local Time representation
+    startTime = localtime(&currentTime);
+    int startHour = startTime -> tm_hour;
+ 
+    //expect high electricity usage from 5pm till 1am. 
+    if(startHour > 17|| stargeHour < 1)
     {
-        return true;
-    }
-    else if(testCase < comparison)
-    {
-        return true;
-    }
-    return false;
+	    input + 20;
+    } 
+    int diff = input * flexibility;
+    int r = rand();
+    return (r % (2 * diff + 1)) + (input - diff);
 }

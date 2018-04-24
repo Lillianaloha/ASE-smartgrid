@@ -76,27 +76,6 @@ static void breakLoop(int signo)
     status = OFF;
 }
 
-//By time of day, afternoon increase the input and morning decrease the input.
-int randomlize(int input, double flexibility){
-    time_t currentTime;
-    struct tm * startTime;
-    
-    //Get the current time
-    currentTime = time(NULL);
-    
-    //Convert it to Local Time representation
-    startTime = localtime(&currentTime);
-    int startHour = startTime -> tm_hour;
- 
-    //expect high electricity usage from 5pm till 1am. 
-    if(startHour > 17|| stargeHour < 1){
-	    input + 20;
-    } 
-    int diff = input * flexibility;
-    srand(time(NULL));   // should only be called once
-    int r = rand();
-    return (r % (2 * diff + 1)) + (input - diff);
-}
 
 void * generateData()
 {
@@ -104,6 +83,8 @@ void * generateData()
     // Generate new values...
 
     int t = 0;
+    double cosAngle = 0; 
+    double sinAngle = 0; 
     time_t current;
     time_t previous;
     printf("Data Generator started...\n");
@@ -119,17 +100,16 @@ void * generateData()
 	time(&current);
     	current -= epoch;
 	
-	//If a second hasn't elapsed wait a bit more...
-		
+	//If a second hasn't elapsed wait a bit more...	
 	if(current == previous)
 	{
             continue;		
 	}
-
-	printf("Data being generated\n");
-		
+	
 	//Update Time
 	++t;
+	cosAngle = cos((double) (omega * t + phi);
+	sinAngle = sin((double) (omega * t + phi);
 
         pthread_rwlock_wrlock(&d -> rwlock);
 
@@ -139,39 +119,42 @@ void * generateData()
              
         // Independant Variables
         // Voltage is default 110, +/- 5%    
-        // 104.5 - 114.5 Volts
-        
-        d -> Va = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi)));
-        d -> Vb = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi - 120)));
-        d -> Vc = (int)(SQRT2 * (double) Vin * cos((double) ( omega * t + phi + 120)));
-
+        // 104.5 - 114.5 Volts, Since I am using int (105 - 115 Volts)
+        d -> Va = volts();
+        d -> Vb = volts();
+        d -> Vc = volts();
   
-        // Current 0 - 50 A
+        // Current 0 - 50 A, Subject to most change over the course of a day...
         d -> Ia = rand() % 50;
         d -> Ib = rand() % 50;
         d -> Ic = rand() % 50;
     
-        //Dependent Variables
-        d -> Total_Power += 1;
-        d -> Total_FundamentalPower += 1;
-        d -> PhaseA_Power = d -> Va * d -> Ia; 
-        d -> PhaseB_Power = d -> Vb * d -> Ib;
-        d -> PhaseC_Power = d -> Vc * d -> Ic;
-            
+        // Dependent Variables (Active Power), Note Active Power can't be negative...
+        d -> PhaseA_Power = abs(d -> Va * d -> Ia * cosAngle); 
+        d -> PhaseB_Power = abs(d -> Vb * d -> Ib * cosAngle);
+        d -> PhaseC_Power = abs(d -> Vc * d -> Ic * cosAngle);
+	d -> Total_Power = abs(d -> PhaseA_Power + d -> PhaseB_Power + d -> PhaseC_Power);  
+	
+	// Dependent Variables (Reactive Power), Can be Positive or Negative
+	d -> PhaseA_ReactivePower = d -> Va * d -> Ia * sinAngle;
+        d -> PhaseB_ReactivePower = d -> Vb * d -> Ib * sinAngle;
+        d -> PhaseC_ReactivePower = d -> Vc * d -> Ic * sinAngle;
+	d -> ReactivePower = d -> PhaseA_ReactivePower + d -> PhaseB_ReactivePower + d -> PhaseC_ReactivePower;   
+        
+	// Using Power Triangle, get Apparent Power
+        d -> Total_FundamentalPower = (int) sqrt((double) ReactivePower * ReactivePower + Total_Power * Total_Power);
 
-        //Reactive Power: Irms * Vrms * 
-        d -> ReactivePower += 1;
-        d -> PhaseA_ReactivePower += 1;
-        d -> PhaseB_ReactivePower += 1;
-        d -> PhaseC_ReactivePower += 1;
-        d -> Consumed_Power += 1;
-        d -> Sold_Power += 1;
+	// Assume home has some solar panel or something and decides to use it all of it.
+	// https://solarpowerrocks.com/solar-basics/how-much-electricity-does-a-solar-panel-produce/
+	// 265 Watts of power, will give it a range 200 - 265 based on 2012-2015 panels
+        d -> Sold_Power = solarPanel();
+	d -> Consumed_Power = d -> Total_FundamentalPower - d -> Sold_Power;
 
         pthread_rwlock_unlock(&d -> rwlock);
-        printf("Data finished generating\n");
+        //printf("Data finished generating\n");
     }
     printf("Generator shutting down\n");
-    return NULL;
+    pthread_exit(NULL);
 }
 
 void * run(void * serv)
@@ -360,12 +343,11 @@ void * run(void * serv)
 
 int main(int argc, char **argv)
 {
-    /*
+
     if(signal(SIGPIPE, SIG_IGN) == SIG_ERR)
     {
         die("Failed to ignore SIGPIPE\n");
     }
-    */
 
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
