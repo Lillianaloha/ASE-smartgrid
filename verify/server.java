@@ -1,6 +1,7 @@
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
-import javax.crypto.*;
+import java.util.Scanner;
+import java.util.stream.Stream;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -227,7 +235,7 @@ public class server implements Runnable
 		}
 	}
 	
-	public static void main(String [] args)
+	public static void main(String [] args) throws FileNotFoundException
 	{
 		//How to build the RSA Keys
 		/*
@@ -365,6 +373,47 @@ public class server implements Runnable
         //Decrypt signature with public key and de hash. Then compare...
         return publicSignature.verify(signature);
     }
+    
+    
+    /*
+     * Test if the input is reasonable. By reasonable, we mean if for every 
+     * two lines of data, the corresponding data from the second line is within 
+     * 'errorRate' percent difference of the first. 
+     */
+    public static int invalidInstance(String filePath, double errorRate) throws FileNotFoundException{
+    	//error range should be any number between 0 and 1
+    	if(errorRate <= 0 || errorRate >= 1) {
+    		System.out.println("wrong error rate");
+    	}
+    	
+    	Scanner scanner = new Scanner(new File(filePath));
+    	int[] array1 = new int[17];
+    	int[] array2 = new int[17];
+    	int counter = 0;
+    	
+    	//read first line
+    	if(scanner.hasNext()) {
+    		array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
+    	}
+    	
+    	//read second line, compare, and then move to the next two lines.
+    	while(scanner.hasNext()){
+        	array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
+    		for(int i= 0; i < array1.length; i++) {
+    			double error = array1[i] * errorRate;
+    			if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
+    				counter++;
+    				break;
+    			}
+    		}
+    		array1 = array2;
+    	}
+    	
+    	scanner.close();
+    	return counter;
+    }
+    
+    
     
     /*
   	 * Close Socket
