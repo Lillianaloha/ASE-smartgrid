@@ -14,29 +14,32 @@ $txt = fread($myfile,filesize("portnumber.txt"));
 $port = intval($txt);
 
 // Creating Server Socket
-if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
+if (($server_sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
     echo "socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
 }
-if (socket_bind($sock, $address, $port) === false) {
+if (socket_bind($server_sock, $address, $port) === false) {
     echo "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
 }
-if (socket_listen($sock, 5) === false) {
-    echo "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
+if (socket_listen($server_sock, 5) === false) {
+    echo "socket_listen() failed: reason: " . socket_strerror(socket_last_error($server_sock)) . "\n";
 }
 do 
 {
-    if (($msgsock = socket_accept($sock)) === false) 
+    if (($client_sock = socket_accept($server_sock)) === false) 
     {
-        echo "socket_accept() failed: reason: " . socket_strerror(socket_last_error($sock)) . "\n";
+        echo "socket_accept() failed: reason: " . socket_strerror(socket_last_error($client_sock)) . "\n";
         break;
     }
     /* Send instructions. */
     $msg = "\nWelcome to the PHP Test Server. \n" .
         "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
-    socket_write($msgsock, $msg, strlen($msg));
+    socket_write($client_sock, $msg, strlen($msg));
     
 //    $generate_IP = '160.39.232.239';
+    
+//    Andrew's virtual machine
     $generate_IP = '160.39.136.200';
+    
 //    $generate_IP = '160.39.232.82';
     $generate_Port = 8001;
     
@@ -46,7 +49,7 @@ do
     $time_rate = "0010";
     $sampling_rate = "0002";
     
-    
+//To get the data from user interface
 //    if( $_GET["time"] || $_GET["rate"] ) {
 //      $time_rate = "00".$_GET['time'];
 //      $sampling_rate = "00".$_GET['rate'];
@@ -118,17 +121,20 @@ do
             echo "Invalid sampling rate input!\n";
         
         //Now wait until transmission completes...
-        $counter = 1;
         while(true)
         {
             //Read from generator
-            if (false === ($buf = socket_read($generator_socket, 2048, PHP_NORMAL_READ))) 
+            if (false === ($buf = socket_read($generator_socket, 200)))
             {
                 echo "Failed to get data from generator..." . socket_strerror(socket_last_error($msgsock)) . "\n";
                 break 2;
             }
+            if ($buf == '')
+            {
+                echo "No more data to read\n";
+                break;
+            }
             echo $buf;
-            
             $content = str_replace($txt,strval($port+1),$txt);
             $myfile2 = fopen("portnumber.txt", "w");
             fwrite($myfile2,$content);
@@ -138,12 +144,8 @@ do
                 continue;
             }
 //            echo $buf;
-            if ($time_rate == $counter)
-            {                
-                break;
-            }
-            $counter = $counter + 1;
         }
+        echo "Exited while loop\n";
         
         /*
         if (!$buf = trim($buf)) 
@@ -163,11 +165,11 @@ do
         socket_write($msgsock, $talkback, strlen($talkback));
         echo "$buf\n";
         */
-    } 
+    }
     while (true); 
     echo "Reading Smart Grid Generator session complete\n";
-    socket_close($msgsock);
+    socket_close($client_sock);
 }
 while (true);
-socket_close($sock);
+socket_close($server_sock);
 ?>
