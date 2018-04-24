@@ -110,6 +110,7 @@ void * generateData()
 	{
             continue;		
 	}
+
 	printf("Data being generated\n");
 		
 	//Update Time
@@ -186,22 +187,60 @@ void * run(void * serv)
 
     // Get time to read
     // Get sampling rate: 1 reading per second, 2 second, etc.
+    char sampling_input [4];
+    char time_input [4];
+    char * temp;
     int time_out = 0;       //(in seconds)
     int sampling = 0;       //(in seconds)
     
+//-------------------Get Time------------------------
     printf("Waiting for reading time\n");
-    if(read(clntSock, &time_out, sizeof(int)) < 0)
+    if(read(clntSock, time_input, 4) < 0)
     {
-        die("Error at reading time.");
+        printf("Error at reading time.\n");
+	pthread_exit(NULL);
     }
-    printf("Thread received time rate: %d\n", time_out);
-
+    printf("Thread received time rate: %s\n", time_input);
+    
+    //Remove leading 0s...
+    temp = time_input;
+    for(int i = 0; i < 4; i++)
+    {
+        if(time_input[i] == '0')
+        {
+            temp++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    printf("value of time_input is: %s\n", temp);
+    time_out = atoi(temp);
+//----------------Get Sampling Rate-----------------
     printf("Waiting for reading sampling rate\n");
-    if(read(clntSock, &sampling, sizeof(int)) < 0)
+    if(read(clntSock, sampling_input, 4) < 0)
     {
-        die("Error at reading sampling rate.");
+        printf("Error at reading sampling rate.\n");
+	pthread_exit(NULL);
     }
-    printf("Thread received sampling rate: %d\n", sampling);
+    printf("Thread received sampling rate: %s\n", sampling_input);
+    
+    //Remove leading 0s...
+    temp = sampling_input;
+    for(int i = 0; i < 4; i++)
+    {
+        if(sampling_input[i] == '0')
+        {
+            temp++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    printf("value of time_input is: %s\n", temp);
+    sampling = atoi(temp);
 
 //---------------Get Extra Data for direct outward communication----------------
 /*
@@ -260,10 +299,12 @@ void * run(void * serv)
         current -= thread_epoch;
 	
 	// A second did not pass...
-	//if(current == previous)
-	//{
-        //    continue;
-	//}
+	/*
+        if(current == previous)
+	{
+            continue;
+	}
+        */
 
     	pthread_rwlock_rdlock(&d -> rwlock);
         Va = d -> Va;
@@ -293,24 +334,33 @@ void * run(void * serv)
     	Send(clntSock, printData);
         if(ctr == time_out)
         {
+            printf("Time is up\n");
             break;
         }
         ++ctr;   
     }
-    return NULL;
+    close(clntSock);
+    pthread_exit(NULL);
 }
 
 int main(int argc, char **argv)
 {
+    /*
+    if(signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+    {
+        die("Failed to ignore SIGPIPE\n");
+    }
+    */
+
     if(signal_intr(SIGINT, &breakLoop) == SIG_ERR)
     {
-	die("CTRL + C failed");
+	die("CTRL + C failed\n");
     }
 
     //Ignore signal...
-    if(signal(SIGUSR1, NULL) == SIG_ERR)
+    if(signal(SIGUSR1, SIG_IGN) == SIG_ERR)
     {
-
+        die("Failed to ignore SIGUSER1\n");
     }
     
     // Command Line Arguments...
@@ -379,7 +429,6 @@ int main(int argc, char **argv)
     
     //Clean up Program...
     pthread_join(generatorThread, NULL);
-
     pthread_rwlock_destroy(&d -> rwlock);
     sem_destroy(&d -> mutex);
     munmap(d, sizeof(struct data));
