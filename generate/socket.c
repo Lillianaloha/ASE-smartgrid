@@ -74,13 +74,13 @@ ssize_t Send(int sock, const char *buf)
     size_t len = strlen(buf);
 
     //SET DON'T WAIT?
-    ssize_t res = send(sock, buf, len, 0);
+    ssize_t res = send(sock, buf, len, MSG_DONTWAIT);
 
     if (res != len) 
     {
         perror("send() failed\n");
         printf("%s\n", buf);
-        printf("length: %ld and result: %ld", len, res);
+        printf("length: %ld and result: %ld\n", len, res);
         return -1;
     }
     else
