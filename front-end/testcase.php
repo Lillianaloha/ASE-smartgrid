@@ -8,7 +8,10 @@ ob_implicit_flush();
 
 //Main Computer data that holds SQL Database and website
 $address = 'localhost';
-$port = 8187;
+//$port = 8273;
+$myfile = fopen("portnumber.txt", "r");
+$txt = fread($myfile,filesize("portnumber.txt"));
+$port = intval($txt);
 
 // Creating Server Socket
 if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
@@ -32,14 +35,22 @@ do
         "To quit, type 'quit'. To shut down the server type 'shutdown'.\n";
     socket_write($msgsock, $msg, strlen($msg));
     
-    $generate_IP = '160.39.232.239';
+//    $generate_IP = '160.39.232.239';
+    $generate_IP = '160.39.136.200';
+//    $generate_IP = '160.39.232.82';
     $generate_Port = 8001;
+    
 //    $time_rate = 10;
-//    $sampling_rate = 10;
-    if( $_GET["time"] || $_GET["rate"] ) {
-      $time_rate = "00".$_GET['time'];
-      $sampling_rate = "00".$_GET['rate'];
-   }  
+//    $sampling_rate = 2;
+    
+    $time_rate = "0010";
+    $sampling_rate = "0002";
+    
+    
+//    if( $_GET["time"] || $_GET["rate"] ) {
+//      $time_rate = "00".$_GET['time'];
+//      $sampling_rate = "00".$_GET['rate'];
+//   }  
     
     //Or we can pre-set IP and port?
     
@@ -117,13 +128,18 @@ do
                 break 2;
             }
             echo $buf;
+            
+            $content = str_replace($txt,strval($port+1),$txt);
+            $myfile2 = fopen("portnumber.txt", "w");
+            fwrite($myfile2,$content);
+            
             if (!$buf = trim($buf))
             {
                 continue;
             }
 //            echo $buf;
             if ($time_rate == $counter)
-            {
+            {                
                 break;
             }
             $counter = $counter + 1;

@@ -8,7 +8,7 @@
 		<title> Smartgrid | Search </title>
 		<link rel="stylesheet" href="../css/base.css" />
 		<link rel="stylesheet" href="../css/index.css" />
-		<link rel="stylesheet" href="../css/about.css" />
+		<link rel="stylesheet" href="../css/future.css" />
 	</head>
 
 	<body>
@@ -16,7 +16,7 @@
 		<div id="header">
 			<div class="header-content">
 				<div class="logo">
-					<a href="index.html"> <img src="../img/a.png" height="82" width="256" /> </a> 
+					<a href="../index.html"> <img src="../img/a.png" height="82" width="256" /> </a> 
 <!--					logo picture should be changed-->
 					<div class="key">
                         <p>Class Project</p>
@@ -26,8 +26,8 @@
 					<ul>
 						<li> <a href="../index.html">Home</a> </li>
 						<li> <a href="success.php">Search</a> </li>
-                        <li class="active"> <a href="about.html">About Us</a> </li>
-						<li> <a href="future.html">Future</a> </li>
+                        			<li> <a href="about.php">About Us</a> </li>
+						<li class="active"> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -54,13 +54,13 @@
             <!--内容-->
 			<div class="content">
 				<div class="section1">
-					<h3>Principle goals</h3>
+					<h3>Future goals</h3>
 					<p>
 					
-					1. Generate data on gateway (Offline scenario) <br>
-					2. Generating synthetic “smart meter” data from each node (Online Scenario) <br>
-					3. Assign a table or database for each registered group/team. Database on the server <br>
-                    4. Storage and Retrieval of data from database located at the gateway <br>
+					1. Visualization of application state (network topology, bandwidth, etc), raw, encrypted, and /or processed "sensor" data. <br>
+					2. Potentially extending the interface access to multiple users (from a single group/team) simultaneously through some synchronization restrictions (consider a scenario where two users from the same group can connect to the testbed and they need to have a sync mechanism). <br>
+					3. Providing advanced users with template source code to store and retrieve data to their assigned database. <br>
+   
 
 						
 					</p>
@@ -73,8 +73,8 @@
 			<p>
 				<a href="../index.html">Home</a> |
 				<a href="success.php">Search</a> |
-				<a href="about.html">About Us</a> |
-				<a href="future.html">Future</a> |
+				<a href="about.php">About Us</a> |
+				<a href="future.php">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu
