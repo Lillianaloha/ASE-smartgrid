@@ -76,7 +76,22 @@ static void breakLoop(int signo)
     status = OFF;
 }
 
+//By time of day, afternoon increase the input and morning decrease the input.
 int randomlize(int input, double flexibility){
+    time_t currentTime;
+    struct tm * startTime;
+    
+    //Get the current time
+    currentTime = time(NULL);
+    
+    //Convert it to Local Time representation
+    startTime = localtime(&currentTime);
+    int startHour = startTime -> tm_hour;
+ 
+    //expect high electricity usage from 5pm till 1am. 
+    if(startHour > 17|| stargeHour < 1){
+	    input + 20;
+    } 
     int diff = input * flexibility;
     srand(time(NULL));   // should only be called once
     int r = rand();
