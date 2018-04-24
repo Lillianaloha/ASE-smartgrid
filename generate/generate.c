@@ -76,6 +76,13 @@ static void breakLoop(int signo)
     status = OFF;
 }
 
+int randomlize(int input, double flexibility){
+    int diff = input * flexibility;
+    srand(time(NULL));   // should only be called once
+    int r = rand();
+    return (r % (2 * diff + 1)) + (input - diff);
+}
+
 void * generateData()
 {
     // For every second...
