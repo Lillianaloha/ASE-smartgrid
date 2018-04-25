@@ -81,19 +81,18 @@
                     <th height="60" >HASH</th> 
                   </tr>
                   <tr>
-                    <td height="60" align="center"><a href="../plot/file.csv">File 1</a></td>
-                    <td height="60" align="center">Smith</td>
+                    <td height="60" align="center"><a href="../plot/csvtohash/file4.csv">File 1</a></td>
+                    <td height="60" align="center">Hash Code Here</td>
                   </tr>
                   <tr>
-                    <td height="60" align="center">Eve</td>
-                    <td height="60" align="center">Jackson</td>
+                    <td height="60" align="center"><a href="../plot/csvtohash/file5.csv">File 2</a></td>
+                    <td height="60" align="center">Hash Code Here</td>
                   </tr>
                   <tr>
-                    <td height="60" align="center">John</td>
-                    <td height="60" align="center">Doe</td>
+                    <td height="60" align="center"><a href="../plot/csvtohash/file5.csv">File 3</a></td>
+                    <td height="60" align="center">Hash Code Here</td>
                   </tr>
                 </table>
-<!--                   <div></div>-->
             </div>
                    
             <form action="table.php" method="get">
