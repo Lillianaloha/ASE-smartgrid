@@ -1,11 +1,6 @@
 Our team is currently working to build a website allowing communication to the power grid, so that we can implement certain simulations such as price regulation, demand response and power distribution, use a database to save progress and maybe support multiple users connecting at the same time.
 
 What we have completed are showing as follows:
-### Set up a CI/CD pipeline and develop our own test cases
-(https://circleci.com/gh/Lillianaloha/test.svg?style=svg)]
-(https://circleci.com/gh/Lillianaloha/test)
-
-Following the github instruction, we successfully apply Circle CI testing into our project. And by testing, we better grab what we should do, and fix our codes more practicable.
 
 ### Build a data generator
 Our data generator is built on the basis of a testbed with 20 nodes connecting to smart power meters, which is to simulate a real world power grid. Receiving time and sampling rate from the webpage input, the data generator could generate data based on a timer, and send data back to the webpage and database.
@@ -22,6 +17,11 @@ We use sockets to connect the front-end webpage and the C codes (data generator)
 
 ### RSA file verification system using java
 This is another function we add to the project that allows RSA file verification.
+
+### Set up a CI/CD pipeline and develop our own test cases
+(https://circleci.com/gh/Lillianaloha/test)
+
+Following the github instruction, we successfully apply Circle CI testing into our project. And by testing, we better grab what we should do, and fix our codes more practicable.
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 We have completed the project using 3 Phase physics equations, but a component we wanted to add but proved to be more challenging than expected (especially with finals season) is to use techniques of machine learning to generate new Smart Meter readings based on previous real readings (acquired from few publicly available datasets). 
