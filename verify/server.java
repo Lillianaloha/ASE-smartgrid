@@ -300,7 +300,7 @@ public class server implements Runnable
 		else if (args.length == 1)
 		{
 			// Read all the file into byte array
-			if(isValidFile(args[1]))
+			if(isValidFile(args[0]))
 			{
 				String Hash = null;
 				try 
@@ -335,7 +335,7 @@ public class server implements Runnable
 			// See Method at the VERY BOTTOM
 			try
 			{
-				invalidInstance(args[1], args[2]);
+				invalidInstance(args[0], args[1]);
 			}
 			catch(Exception fn)
 			{
