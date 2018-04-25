@@ -1,3 +1,6 @@
+//Name: Andrew Quijano
+//UNI: afq2101
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,8 +11,10 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -26,7 +31,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class client
 {
 	//Actual variables for the class
-	private static InputStream readFile = null;
 	private static char ACTION;
 	private static int port;
 	private Socket clientSocket = null;
@@ -132,7 +136,7 @@ public class client
 		try
 		{
 			File information = new File(fileLocation);
-			readFile = new FileInputStream(information);
+			FileInputStream readFile = new FileInputStream(new File(fileLocation));
 
 			//Check if it is too large?
 			data = new byte[(int) information.length()];
@@ -143,6 +147,8 @@ public class client
 			{
 				die("File wasn't read entirely...");
 			}
+			
+			readFile.close();
 			return true;
 		}
 		catch(IOException e)
@@ -201,6 +207,15 @@ public class client
 		try
 		{
 			port = Integer.parseInt(portNum);
+			if (port <= 0)
+			{
+				System.out.println("Illegal Port Number argument.");
+				return false;
+			}
+			else if (port > 0 && port < 1024)
+			{
+				System.out.println("Permission Denied to use Ports 1 - 1024");
+			}
 			return true;
 		}
 		catch(NumberFormatException nfe)
@@ -211,17 +226,18 @@ public class client
     
 	public static void main (String [] args)
 	{
-		if (args.length != 8)
+		// Build RSA Keys
+		if (args.length == 0)
+		{
+			 client networkClient = new client();
+			 networkClient.buildKeyPair();
+			 networkClient.printRSAKeys();
+			 System.exit(0);
+		}
+		else if (args.length != 8)
 		{
 			die("Invalid amount of arguments");
 		}
-		
-		/*
-		 * How to build client RSA Public/Private Key
-		 * client networkClient = new client();
-		 * networkClient.buildKeyPair();
-		 * networkClient.printRSAKeys();
-		 * */
 		
 		//Error checking methods invoked
 		if(isValidPassword(args[0])==false)
@@ -355,6 +371,11 @@ public class client
         return signed;
     }
     
+    public client()
+    {
+    	
+    }
+    
 	public client(String password, String IP, String serverPK, String clientPK, String clientSK)
 	{
 		//Final check, Find the Public Key!
@@ -480,5 +501,24 @@ public class client
 		{
 			die("Failed to close connection");
 		}
+	}
+	
+	// Build Hash
+	public static String hashFile(String originalString) throws NoSuchAlgorithmException
+	{
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		byte [] encodedhash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
+		
+		StringBuffer hexString = new StringBuffer();
+	    for (int i = 0; i < encodedhash.length; i++) 
+	    {
+	    	String hex = Integer.toHexString(0xff & encodedhash[i]);
+	    	if(hex.length() == 1) 
+	    	{
+	    		hexString.append('0');
+	    	}
+	    	hexString.append(hex);
+	    }
+	    return hexString.toString();
 	}
 }

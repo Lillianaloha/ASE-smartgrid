@@ -237,13 +237,64 @@ public class server implements Runnable
 	
 	public static void main(String [] args) throws FileNotFoundException
 	{
-		//How to build the RSA Keys
-		/*
-		server signature = new server();
-		signature.buildKeyPair();
-		signature.printRSAKeys();
-		*/
+		// How to build the RSA Keys
+		if (args.length == 0)
+		{
+			server signature = new server();
+			signature.buildKeyPair();
+			signature.printRSAKeys();
+			System.exit(0);
+		}
 		
+		// Hash a file, print to output
+		// server.jar <file to Hash>
+		else if (args.length == 1)
+		{
+			server hasher = new server();
+			// Read all the file into byte array
+			if(isValidFile(args[1]))
+			{
+				String tobeHashed = new String(data);
+				String Hash = null;
+				try 
+				{
+					Hash = new String(hasher.hashFile(data));
+				}
+				catch (NoSuchAlgorithmException e)
+				{
+					e.printStackTrace();
+				}
+				// Print the Hash
+				if (Hash != null)
+				{
+					System.out.println(Hash);
+				}
+				else
+				{
+					die("Hash is NULL!");
+				}
+				System.exit(0);
+			}
+			else
+			{
+				die("Error in reading file to Hash");
+			}
+		}
+		
+		// Run anomaly detection
+		// server.jar <file to Hash> <given percentage>
+		else if (args.length == 2)
+		{
+			try
+			{
+				invalidInstance(String filePath, double errorRate);
+			}
+			catch(FileNotFoundException fn)
+			{
+				fn.printStackTrace();
+			}
+			System.exit(0);
+		}
 		if(args.length != 5)
 		{
 			die("Invalid amount of arguments");
@@ -263,9 +314,8 @@ public class server implements Runnable
 		new Thread(signature).start();
 	}
 	
-	/*
-	 * Generate RSA Public Keys
-	 * */
+	// Generate RSA Public Keys
+	
 	public void buildKeyPair() 
 	{
 		KeyPairGenerator keyPairGenerator = null;
@@ -382,7 +432,8 @@ public class server implements Runnable
      */
     public static int invalidInstance(String filePath, double errorRate) throws FileNotFoundException{
     	//error range should be any number between 0 and 1
-    	if(errorRate <= 0 || errorRate >= 1) {
+    	if(errorRate <= 0 || errorRate >= 1) 
+    	{
     		System.out.println("wrong error rate");
     	}
     	
@@ -392,7 +443,8 @@ public class server implements Runnable
     	int counter = 0;
     	
     	//read first line
-    	if(scanner.hasNext()) {
+    	if(scanner.hasNext()) 
+    	{
     		array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
     	}
     	
@@ -415,10 +467,7 @@ public class server implements Runnable
     
     
     
-    /*
-  	 * Close Socket
-  	 * */
-    
+    // Close Socket
 	private void closeConnection()
 	{
 		try
