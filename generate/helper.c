@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "generate.h"
 
 double validMargin = 1.05;
 
@@ -37,7 +37,7 @@ void data_init(struct data * d)
 // rand() % range + min
 int volts()
 {
-    return (int) rand() % 115 + 105;	
+    return generateRandom(105, 115);
 }
 
 // Solar Panels recently can generated
@@ -45,7 +45,13 @@ int volts()
 
 int solarPanel()
 {
-    return (int) rand() % 265 + 200;	
+    return generateRandom(200, 265);	
+}
+
+//Generate within a range
+int generateRandom(int min, int max)
+{
+    return min + rand()% (max + 1 - min);
 }
 
 
@@ -69,9 +75,9 @@ int randomize(int input, double flexibility)
     int startHour = startTime -> tm_hour;
  
     //expect high electricity usage from 5pm till 1am. 
-    if(startHour > 17|| stargeHour < 1)
+    if(startHour > 17|| startHour < 1)
     {
-	    input + 20;
+	    input += 20;
     } 
     int diff = input * flexibility;
     int r = rand();

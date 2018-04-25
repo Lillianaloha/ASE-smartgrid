@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "generate.h"
 
 void die(char * message)
 {
