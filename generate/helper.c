@@ -2,6 +2,7 @@
 
 double validMargin = 1.05;
 
+// Initialize database
 void data_init(struct data * d)
 {
     if((sem_init(&d->mutex, 1, 1) != 0))
@@ -36,16 +37,25 @@ void data_init(struct data * d)
 // rand() % range + min
 int volts()
 {
-return (int) rand() % 115 + 105;	
+    return (int) rand() % 115 + 105;	
 }
+
+// Solar Panels recently can generated
+// between 200 - 265 Watts. 
 
 int solarPanel()
 {
-return (int) rand() % 265 + 200;	
+    return (int) rand() % 265 + 200;	
 }
 
 
-//By time of day, afternoon increase the input and morning decrease the input.
+// Current Random Generator
+// By: afternoon increase the input 
+// morning decrease the input.
+
+// Can easily be modified to increase/decrease
+// on month/day/year, etc.
+
 int randomize(int input, double flexibility)
 {
     time_t currentTime;

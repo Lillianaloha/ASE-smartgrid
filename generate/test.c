@@ -5,12 +5,19 @@
 /*
  * Goals: by Ravi's meeting
  * 1- Get something to print every second (CHECK)
- * 2- Get anomaly detection online (say over 5% change)
- * 3- What are some good initial values? (How to input them?)
- * 4- Get a Random Number Generator that isn't too crazy...
- * 5- Change numbers with respect to time of day...
- * After Ravi at 10 AM
- * 6- IF POSSIBLE. Get a valid data set...Get some Linear Regression going, add that module 
+ * 2- Get anomaly detection online (say over 5% change) (Yupeng completed)
+ * 3- Get a Random Number Generator that isn't too crazy (Yupeng completed)
+ * 4- Change numbers with respect to time of day (Yupeng completed)
+ */
+
+/*
+ * Pleae feel free to ignore this.
+ * This .c file was just out test bed to get second ticker,
+ * random generators, etc. up.
+ *
+ * Essentially you know how you should test code in its own unit
+ * before sending off to production?
+ * That was the only purpose of this .c file
  */
 
 double validMargin = 1.05;

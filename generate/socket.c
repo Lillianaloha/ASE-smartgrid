@@ -73,7 +73,7 @@ ssize_t Send(int sock, const char *buf)
 {
     size_t len = strlen(buf);
 
-    //SET DON'T WAIT?
+    // SET DON'T WAIT?
     ssize_t res = send(sock, buf, len, MSG_DONTWAIT);
 
     if (res != len) 

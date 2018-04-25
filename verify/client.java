@@ -354,131 +354,155 @@ public class client
         byte [] signed = privateSignature.sign();
         return signed;
     }
-    
-	public client(String password, String IP, String serverPK, String clientPK, String clientSK)
-	{
-		//Final check, Find the Public Key!
-		ObjectInputStream readObject = null;
-		Object input = null;
-		try
-		{
-			//Read all the RSA Keys
-			readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
-			input = readObject.readObject();
-			serverPublicKey = (PublicKey) input;
-			
-			readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
-			input = readObject.readObject();
-			pubKey = (PublicKey) input;
-			
-			readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
-			input = readObject.readObject();
-			privKey = (PrivateKey) input;
-			
-			readObject.close();
-	
-			//Establish Connection
-			clientSocket = new Socket(IP, port);
-			toServer = clientSocket.getOutputStream();
-			
-			//Data is read and ready to go!	
-			if(ACTION=='a')
-			{
-				// Get the Instance for AES-128 bit
-				this.buildAES(password);
-				//encrypt the file
-				byte [] encrypted = this.AESencrypt(data, AES);
-			
-				//Convert AES to byte stream to it can be encrypted
-				byte [] encryptedAES = encryptKey(serverPublicKey, AES);
-				
-				//Send AES-Key
-				toServer.write(encryptedAES);
-				toServer.flush();
-				
-				//Send IV-Parameter
-				toServer.write(iv);
-				toServer.flush();
-				
-				//Send File
-				toServer.write(encrypted);
-				toServer.flush();
-			}
-			else if (ACTION == 'b')
-			{
-				//Send Signed File
-				byte [] signature = sign(data, privKey);			
-				toServer.write(signature);
-				toServer.flush();
-				
-				//Send plain text file
-				toServer.write(data);
-				toServer.flush();
-			}
-			else if(ACTION == 'c')
-			{
-				//Sign File
-				byte [] signature = sign(data, privKey);
-				
-				//Change the byte of file!
-				if (data[0] != 0x00)
-				{
-					System.out.format("Original: %x\n", data[0]);
-					data[0] = (byte) 0x00;
-					System.out.format("Modified: %x\n", data[0]);
-				}
-				else
-				{
-					System.out.format("Original: %x\n", data[0]);
-					data[0] = (byte) 0xff; 
-					System.out.format("Modified: %x\n", data[0]);
-				}
-				
-				//Send Signed File
-				toServer.write(signature);
-				toServer.flush();
+   
 
-				//Send plaintext
-				toServer.write(data);
-				toServer.flush();
-			}
-			this.closeConnection();
-		}
-		catch (UnknownHostException socket)
-		{
-			die("Unknown Host...in constructor");
-		}
-		catch (IOException socket)
-		{
-			die("RSA Files not Found/No connection to Server");
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			die("No such Algorithm in constructor");
-		}
-		catch(BadPaddingException e)
-		{
-			die("You have misplace your RSA keys! Did you follow my README?");
-		}
-		catch (Exception e)
-		{
-			die("Most likely one of those Crypto stuff malfunctioned");
-		}
-	}
+    public client(String password, String IP, String serverPK, String clientPK, String clientSK)
+    {
+	//Final check, Find the Public Key!
+	ObjectInputStream readObject = null;
+        Object input = null;
+
+        try
+        {
+
+            //Read all the RSA Keys
+            readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+            input = readObject.readObject();
+            serverPublicKey = (PublicKey) input;
+			
+            readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
+            input = readObject.readObject();
+            pubKey = (PublicKey) input;
+
+
+
+            readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
+            input = readObject.readObject();
+            privKey = (PrivateKey) input;
+            readObject.close();
 	
-	/*
-	 * This method is to close the connection
-	 * */
-	private void closeConnection()
-	{
-		try
-		{
-			toServer.close();
-			clientSocket.close();
-		}
-		catch (IOException e)
-		{
-			die("Failed to close connection");
-		}
-	}
+
+            //Establish Connection
+            clientSocket = new Socket(IP, port);
+            toServer = clientSocket.getOutputStream();
+			
+
+            //Data is read and ready to go!	
+            if(ACTION=='a')
+            {
+		
+                // Get the Instance for AES-128 bit
+                this.buildAES(password);
+				
+                //encrypt the file		
+                byte [] encrypted = this.AESencrypt(data, AES);
+			
+
+                //Convert AES to byte stream to it can be encrypted
+                byte [] encryptedAES = encryptKey(serverPublicKey, AES);
+				
+
+                //Send AES-Key
+                toServer.write(encryptedAES);
+                toServer.flush();
+				
+
+                //Send IV-Parameter
+                toServer.write(iv);
+                toServer.flush();
+				
+
+                //Send File
+                toServer.write(encrypted);		
+                toServer.flush();
+
+            }
+			
+            else if (ACTION == 'b')
+            {
+                //Send Signed File
+                byte [] signature = sign(data, privKey);			
+                toServer.write(signature);
+                toServer.flush();
+				
+                //Send plain text file
+                toServer.write(data);
+                toServer.flush();
+
+            }
+	
+            else if(ACTION == 'c')
+
+            {
+
+                //Sign File
+                byte [] signature = sign(data, privKey);
+
+			
+                //Change the byte of file!
+
+                if (data[0] != 0x00)
+                {
+                    System.out.format("Original: %x\n", data[0]);
+                    data[0] = (byte) 0x00;
+                    System.out.format("Modified: %x\n", data[0]);
+
+                }
+                else
+                {
+                    System.out.format("Original: %x\n", data[0]);
+                    data[0] = (byte) 0xff; 
+                    System.out.format("Modified: %x\n", data[0]);
+
+                }
+		
+                //Send Signed File
+                toServer.write(signature);
+                toServer.flush();
+				
+                //Send plaintext
+                toServer.write(data);
+                toServer.flush();
+
+            }
+            this.closeConnection();
+
+        }
+
+        catch (UnknownHostException socket)
+        {
+            die("Unknown Host...in constructor\n");	
+        }
+        catch (IOException socket)
+        {
+            die("RSA Files not Found/No connection to Server\n");
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            die("No such Algorithm in constructor\n");
+        }
+        catch(BadPaddingException e)       
+        {
+            die("You have misplace your RSA keys! Did you follow my README?\n");
+        }
+        catch (Exception e)
+        {
+            die("Most likely one of those Crypto stuff malfunctioned\n");
+        }
+    }
+
+    // This method is to close the connection	 
+    private void closeConnection()
+    {
+        try
+        {
+            toServer.close();
+            clientSocket.close();
+        }
+
+        catch (IOException e)
+        {
+            die("Failed to close connection");
+        }
+    }
 }

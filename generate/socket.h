@@ -10,6 +10,8 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+// Have all method calls from helper.c and socket.c
+
 #define MAXPENDING 5
 int createClientSocket(char * ip, unsigned int port);
 int createServerSocket(unsigned short port);
@@ -19,6 +21,7 @@ int randomize(int input, double flexibility);
 int volts();
 int solarPanel();
 
+// Data structure containing generated data...
 struct data
 {
     int Va;
