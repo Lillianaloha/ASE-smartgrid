@@ -1,3 +1,5 @@
+package verify;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,10 +11,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -31,11 +35,14 @@ import javax.crypto.spec.SecretKeySpec;
 public class server implements Runnable
 {
 	private final static int KEYSIZE = 2048;
+	private static byte [] data;
 	private static final String PUBLICKEYLOCATION = "./serverPublicKey.obj";
 	private static final String PRIVATEKEYLOCATION = "./PrivateKey.obj";
 
 	private static int port;
 	private static char mode;
+	
+
 
 	private ServerSocket serverSocket = null;
 	private Socket clientSocket = null;
@@ -59,6 +66,32 @@ public class server implements Runnable
 	{
 		System.out.println(message);
 		System.exit(0);
+	}
+	
+	public static boolean isValidFile(String fileLocation)
+	{
+		try
+		{
+			File information = new File(fileLocation);
+			FileInputStream readFile = new FileInputStream(new File(fileLocation));
+
+			//Check if it is too large?
+			data = new byte[(int) information.length()];
+
+			// Get Byte Stream of File
+			int size = readFile.read(data, 0, data.length);
+			if (size != data.length)
+			{
+				die("File wasn't read entirely...");
+			}
+
+			readFile.close();
+			return true;
+		}
+		catch(IOException e)
+		{
+			return false;
+		}
 	}
 
 	/*
@@ -90,6 +123,10 @@ public class server implements Runnable
 		{
 			die("Invalid File location for RSA keys");
 		}	
+	}
+
+	public server() {
+		// TODO Auto-generated constructor stub
 	}
 
 	public void run()
@@ -501,16 +538,17 @@ public class server implements Runnable
 	 * two lines of data, the corresponding data from the second line is within 
 	 * 'errorRate' percent difference of the first. 
 	 */
-	public static int invalidInstance(String filePath, String error) 
+	public static int invalidInstance(String filePath, String errorInput) 
 			throws Exception
 	{
+		double errorRate = Double.parseDouble(errorInput);
+		
 		//error range should be any number between 0 and 1
 		if(errorRate <= 0 || errorRate >= 1)
 		{
 			System.out.println("wrong error rate");
 		}
 		
-		double errorRate = Double.parseDouble(error);
 		Scanner scanner = new Scanner(new File(filePath));
 		int[] array1 = new int[17];
 		int[] array2 = new int[17];
@@ -522,9 +560,11 @@ public class server implements Runnable
 		}
 
 		//read second line, compare, and then move to the next two lines.
-		while(scanner.hasNext()){
+		while(scanner.hasNext())
+		{
 			array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-			for(int i= 0; i < array1.length; i++) {
+			for(int i= 0; i < array1.length; i++) 
+			{
 				double error = array1[i] * errorRate;
 				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
 					counter++;
@@ -536,5 +576,13 @@ public class server implements Runnable
 
 		scanner.close();
 		return counter;
+	}
+	
+	// Build Hash
+	public static byte [] hashFile(byte [] original) 
+			throws NoSuchAlgorithmException
+	{
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		return digest.digest(original);
 	}
 }
