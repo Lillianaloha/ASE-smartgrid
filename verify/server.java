@@ -352,7 +352,7 @@ public class server implements Runnable
 			}
 			
 			// See Method at the VERY BOTTOM
-			if(isValidFile(args[0]))
+			if(isValidFile(args[1]))
 			{
 				String Hash = null;
 				try 
@@ -373,6 +373,9 @@ public class server implements Runnable
 					die("Hash is NULL!");
 				}
 				
+                                System.out.println(Hash);
+                                System.out.println(args[2]);
+
 				//Compare with input!
 				if (Hash.equals(args[2]))
 				{
@@ -388,13 +391,6 @@ public class server implements Runnable
 			{
 				die("Input file does not exist!");
 			}
-		}
-		
-		// Compare Hash
-		// server.jar <dataset> <hash given by website>
-		else if (args.length == 3)
-		{
-			
 		}
 		
 		if(args.length != 5)
