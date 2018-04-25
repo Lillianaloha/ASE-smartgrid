@@ -33,10 +33,10 @@ public class server implements Runnable
 	private final static int KEYSIZE = 2048;
 	private static final String PUBLICKEYLOCATION = "./serverPublicKey.obj";
 	private static final String PRIVATEKEYLOCATION = "./PrivateKey.obj";
-	
+
 	private static int port;
 	private static char mode;
-	
+
 	private ServerSocket serverSocket = null;
 	private Socket clientSocket = null;
 	private BufferedInputStream fromClient = null;
@@ -44,13 +44,13 @@ public class server implements Runnable
 	//server RSA Keys
 	public PublicKey pubKey = null;
 	private PrivateKey privKey = null;
-	
+
 	//client RSA public key
 	public PublicKey clientPublicKey = null;
 	private SecretKey AES = null;
 	private IvParameterSpec ivspec = null;
 	private byte [] signature = new byte[256];
-	
+
 	/*
 	 * If an error was caught and it must die,
 	 * come here
@@ -60,7 +60,7 @@ public class server implements Runnable
 		System.out.println(message);
 		System.exit(0);
 	}
-	
+
 	/*
 	 * This is to start the server class
 	 * I wrote it so if I need to make it multi-threaded,
@@ -68,7 +68,7 @@ public class server implements Runnable
 	 * */
 	public server(String clientPK, String serverPK, String serverSK)
 	{	
-		
+
 		/*
 		 * Read all the RSA required keys
 		 */
@@ -80,10 +80,10 @@ public class server implements Runnable
 
 			readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
 			pubKey = (PublicKey) readObject.readObject();
-			
+
 			readObject = new ObjectInputStream(new FileInputStream(new File(serverSK)));
 			privKey = (PrivateKey) readObject.readObject();
-			
+
 			readObject.close();
 		}
 		catch (IOException | ClassNotFoundException e)
@@ -91,13 +91,13 @@ public class server implements Runnable
 			die("Invalid File location for RSA keys");
 		}	
 	}
-	
+
 	public void run()
 	{
 		try
 		{
 			serverSocket = new ServerSocket(port);
-			
+
 			//Run forever until CTRL-C is pressed
 			while(true)
 			{
@@ -124,59 +124,59 @@ public class server implements Runnable
 		try 
 		{
 			InputStream fromClient = clientSocket.getInputStream();
-			
+
 			switch(mode)
 			{
-				// decrypt
-				case('d'):
-				
-					//Get the AES-Cipher, read 256 bytes
-					fromClient.read(signature);
-				
-					//Decrypt the key using the Server Private RSA Key
-					//Acquire the AES Key
-					byte [] key = decrypt(privKey, signature);
-					AES = new SecretKeySpec(key, "AES");
-					
-					//Get the IV Parameter
-					byte [] Ivy = new byte[16]; 
-					fromClient.read(Ivy);
-					ivspec = new IvParameterSpec(Ivy);
+			// decrypt
+			case('d'):
 
-					//Read the file and decrypt it with the AES Key
-					byte [] answer = fromClient.readAllBytes();
-					answer = AESdecrypt(answer, AES);
-					
-					/*
-					 * Write the file to 
-					 * current directory
-					 * */
-					FileOutputStream stream = new FileOutputStream("/home/andrew/test.txt");
-					stream.write(answer);
-					break;
+				//Get the AES-Cipher, read 256 bytes
+				fromClient.read(signature);
 
-				//verify
-				case('v'):
-					//Get the Signature Hash, 256-bytes
-					fromClient.read(signature);
-					
-					//Get File
-					byte [] file = fromClient.readAllBytes();
-					
-					//Verify it
-					if(verify (file, signature, clientPublicKey))
-					{
-						System.out.println("signature is valid");
-					}
-					else
-					{
-						System.out.println("signature is invalid");
-					}
-					break;
+			//Decrypt the key using the Server Private RSA Key
+			//Acquire the AES Key
+			byte [] key = decrypt(privKey, signature);
+			AES = new SecretKeySpec(key, "AES");
 
-				default:
-					die("Invalid char argument!");
-					break;
+			//Get the IV Parameter
+			byte [] Ivy = new byte[16]; 
+			fromClient.read(Ivy);
+			ivspec = new IvParameterSpec(Ivy);
+
+			//Read the file and decrypt it with the AES Key
+			byte [] answer = fromClient.readAllBytes();
+			answer = AESdecrypt(answer, AES);
+
+			/*
+			 * Write the file to 
+			 * current directory
+			 * */
+			FileOutputStream stream = new FileOutputStream("/home/andrew/test.txt");
+			stream.write(answer);
+			break;
+
+			//verify
+			case('v'):
+				//Get the Signature Hash, 256-bytes
+				fromClient.read(signature);
+
+			//Get File
+			byte [] file = fromClient.readAllBytes();
+
+			//Verify it
+			if(verify (file, signature, clientPublicKey))
+			{
+				System.out.println("signature is valid");
+			}
+			else
+			{
+				System.out.println("signature is invalid");
+			}
+			break;
+
+			default:
+				die("Invalid char argument!");
+				break;
 			}
 			this.closeConnection();
 			//Professor Cook said the Server should die...
@@ -211,7 +211,7 @@ public class server implements Runnable
 			return false;
 		}
 	}
-	
+
 	/*
 	 * Check if the action is size 1
 	 * and it is a valid character
@@ -234,21 +234,72 @@ public class server implements Runnable
 			return false;
 		}
 	}
-	
+
 	public static void main(String [] args) throws FileNotFoundException
 	{
-		//How to build the RSA Keys
-		/*
-		server signature = new server();
-		signature.buildKeyPair();
-		signature.printRSAKeys();
-		*/
-		
+		// How to build the RSA Keys
+		if (args.length == 0)
+		{
+			server signature = new server();
+			signature.buildKeyPair();
+			signature.printRSAKeys();
+			System.exit(0);
+		}
+
+		// Hash a file, print to output
+		// server.jar <file to Hash>
+		else if (args.length == 1)
+		{
+			server hasher = new server();
+			// Read all the file into byte array
+			if(isValidFile(args[1]))
+			{
+				String tobeHashed = new String(data);
+				String Hash = null;
+				try 
+				{
+					Hash = new String(hasher.hashFile(data));
+				}
+				catch (NoSuchAlgorithmException e)
+				{
+					e.printStackTrace();
+				}
+				// Print the Hash
+				if (Hash != null)
+				{
+					System.out.println(Hash);
+				}
+				else
+				{
+					die("Hash is NULL!");
+				}
+				System.exit(0);
+			}
+			else
+			{
+				die("Error in reading file to Hash");
+			}
+		}
+
+		// Run anomaly detection
+		// server.jar <file to Hash> <given percentage>
+		else if (args.length == 2)
+		{
+			try
+			{
+				invalidInstance(String filePath, double errorRate);
+			}
+			catch(FileNotFoundException fn)
+			{
+				fn.printStackTrace();
+			}
+			System.exit(0);
+		}
 		if(args.length != 5)
 		{
 			die("Invalid amount of arguments");
 		}
-		
+
 		if(isValidPortNumber(args[0])==false)
 		{
 			die("Invalid Port Number!");
@@ -262,10 +313,9 @@ public class server implements Runnable
 		server signature = new server(args[2], args[3], args[4]);
 		new Thread(signature).start();
 	}
-	
-	/*
-	 * Generate RSA Public Keys
-	 * */
+
+	// Generate RSA Public Keys
+
 	public void buildKeyPair() 
 	{
 		KeyPairGenerator keyPairGenerator = null;
@@ -277,148 +327,147 @@ public class server implements Runnable
 		{
 			e.printStackTrace();
 		}
-		
+
 		keyPairGenerator.initialize(KEYSIZE);      
 		KeyPair keys = keyPairGenerator.genKeyPair();
 		pubKey = keys.getPublic();
 		privKey = keys.getPrivate();
 	}
-	
+
 	/*
 	 * Print the RSA Public Keys into 
 	 * Object files.
 	 * The location of where it is printed is
 	 * determined by the final strings
 	 * */
-    public void printRSAKeys()
-    {
-	 	ObjectOutputStream pkOUT = null;
+	public void printRSAKeys()
+	{
+		ObjectOutputStream pkOUT = null;
 		try
 		{
 			pkOUT = new ObjectOutputStream(new FileOutputStream(new File(PUBLICKEYLOCATION)));
 			pkOUT.writeObject(pubKey);
 			pkOUT.flush();
-			
+
 			pkOUT = new ObjectOutputStream(new FileOutputStream(new File(PRIVATEKEYLOCATION)));
 			pkOUT.writeObject(privKey);
 			pkOUT.flush();
-			
+
 			pkOUT.close();
 		}
 		catch(IOException ioe)
 		{
 			ioe.printStackTrace();
 		}
-    }
-	
-    /*
+	}
+
+	/*
 	 * Decrypt encrypted byte stream
 	 * using the RSA Private Key
 	 * return byte []
 	 * */
-    public static byte[] decrypt(PrivateKey privateKey, byte [] encrypted)
-    		throws Exception
-    {
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");  
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);    
-        return cipher.doFinal(encrypted);
-    }
-    
-    /*
-  	 * Decrypt encrypted byte stream
-  	 * using the AES Secret Key
-  	 * return byte []
-  	 * */
-    public byte [] AESdecrypt(byte [] plaintext, SecretKey key) 
-    		throws InvalidKeyException, NoSuchAlgorithmException, 
-    		NoSuchPaddingException, IllegalBlockSizeException, 
-    		BadPaddingException, InvalidAlgorithmParameterException
-    {
-    	Cipher de = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    	de.init(Cipher.DECRYPT_MODE, key, ivspec);
-    	return de.doFinal(plaintext);
-    }
-    
-    /*
-  	 * Sign a byte [] 
-  	 * using an RSA Private Key
-  	 * and SHA-256 Hashing
-  	 * */
-    public static byte [] sign(byte [] plainText, PrivateKey privateKey)
-    		throws Exception
-    {
-        Signature privateSignature = Signature.getInstance("SHA256withRSA");
-        //Initialize with Private Key
-        privateSignature.initSign(privateKey);
-        //Place plain text into queue
-        privateSignature.update(plainText);
-        //Hash it and sign it with private key
-        return privateSignature.sign();
-    }
-    
-    /*
-  	 * verify a byte[]
-  	 * using an RSA Public Key
-  	 * and decrypt it from SHA-256 Hashing
-  	 * */
-    
-    public static boolean verify(byte [] plainText, byte [] signature, PublicKey publicKey) 
-    		throws Exception 
-    {
-        Signature publicSignature = Signature.getInstance("SHA256withRSA");
-        //Initialize with Public Key
-        publicSignature.initVerify(publicKey);
-        //Place plain text into queue
-        publicSignature.update(plainText);
-        //Decrypt signature with public key and de hash. Then compare...
-        return publicSignature.verify(signature);
-    }
-    
-    
-    /*
-     * Test if the input is reasonable. By reasonable, we mean if for every 
-     * two lines of data, the corresponding data from the second line is within 
-     * 'errorRate' percent difference of the first. 
-     */
-    public static int invalidInstance(String filePath, double errorRate) throws FileNotFoundException{
-    	//error range should be any number between 0 and 1
-    	if(errorRate <= 0 || errorRate >= 1) {
-    		System.out.println("wrong error rate");
-    	}
-    	
-    	Scanner scanner = new Scanner(new File(filePath));
-    	int[] array1 = new int[17];
-    	int[] array2 = new int[17];
-    	int counter = 0;
-    	
-    	//read first line
-    	if(scanner.hasNext()) {
-    		array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-    	}
-    	
-    	//read second line, compare, and then move to the next two lines.
-    	while(scanner.hasNext()){
-        	array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-    		for(int i= 0; i < array1.length; i++) {
-    			double error = array1[i] * errorRate;
-    			if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
-    				counter++;
-    				break;
-    			}
-    		}
-    		array1 = array2;
-    	}
-    	
-    	scanner.close();
-    	return counter;
-    }
-    
-    
-    
-    /*
-  	 * Close Socket
-  	 * */
-    
+	public static byte[] decrypt(PrivateKey privateKey, byte [] encrypted)
+			throws Exception
+	{
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");  
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);    
+		return cipher.doFinal(encrypted);
+	}
+
+	/*
+	 * Decrypt encrypted byte stream
+	 * using the AES Secret Key
+	 * return byte []
+	 * */
+	public byte [] AESdecrypt(byte [] plaintext, SecretKey key) 
+			throws InvalidKeyException, NoSuchAlgorithmException, 
+			NoSuchPaddingException, IllegalBlockSizeException, 
+			BadPaddingException, InvalidAlgorithmParameterException
+	{
+		Cipher de = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		de.init(Cipher.DECRYPT_MODE, key, ivspec);
+		return de.doFinal(plaintext);
+	}
+
+	/*
+	 * Sign a byte [] 
+	 * using an RSA Private Key
+	 * and SHA-256 Hashing
+	 * */
+	public static byte [] sign(byte [] plainText, PrivateKey privateKey)
+			throws Exception
+	{
+		Signature privateSignature = Signature.getInstance("SHA256withRSA");
+		//Initialize with Private Key
+		privateSignature.initSign(privateKey);
+		//Place plain text into queue
+		privateSignature.update(plainText);
+		//Hash it and sign it with private key
+		return privateSignature.sign();
+	}
+
+	/*
+	 * verify a byte[]
+	 * using an RSA Public Key
+	 * and decrypt it from SHA-256 Hashing
+	 * */
+
+	public static boolean verify(byte [] plainText, byte [] signature, PublicKey publicKey) 
+			throws Exception 
+	{
+		Signature publicSignature = Signature.getInstance("SHA256withRSA");
+		//Initialize with Public Key
+		publicSignature.initVerify(publicKey);
+		//Place plain text into queue
+		publicSignature.update(plainText);
+		//Decrypt signature with public key and de hash. Then compare...
+		return publicSignature.verify(signature);
+	}
+
+
+	/*
+	 * Test if the input is reasonable. By reasonable, we mean if for every 
+	 * two lines of data, the corresponding data from the second line is within 
+	 * 'errorRate' percent difference of the first. 
+	 */
+	public static int invalidInstance(String filePath, double errorRate) throws FileNotFoundException{
+		//error range should be any number between 0 and 1
+		if(errorRate <= 0 || errorRate >= 1) 
+		{
+			System.out.println("wrong error rate");
+		}
+
+		Scanner scanner = new Scanner(new File(filePath));
+		int[] array1 = new int[17];
+		int[] array2 = new int[17];
+		int counter = 0;
+
+		//read first line
+		if(scanner.hasNext()) 
+		{
+			array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
+		}
+
+		//read second line, compare, and then move to the next two lines.
+		while(scanner.hasNext()){
+			array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
+			for(int i= 0; i < array1.length; i++) {
+				double error = array1[i] * errorRate;
+				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
+					counter++;
+					break;
+				}
+			}
+			array1 = array2;
+		}
+
+		scanner.close();
+		return counter;
+	}
+
+
+
+	// Close Socket
 	private void closeConnection()
 	{
 		try

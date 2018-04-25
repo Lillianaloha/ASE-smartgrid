@@ -1,3 +1,6 @@
+//Name: Andrew Quijano
+//UNI: afq2101
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -8,8 +11,10 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -26,7 +31,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class client
 {
 	//Actual variables for the class
-	private static InputStream readFile = null;
 	private static char ACTION;
 	private static int port;
 	private Socket clientSocket = null;
@@ -34,25 +38,25 @@ public class client
 	private static final int KEYSIZE = 2048;
 	private static final String PUBLICKEYLOCATION = "./clientPublicKey.obj";
 	private static final String PRIVATEKEYLOCATION = "./clientPrivateKey.obj";
-	
+
 	//client RSA Keys
 	public PublicKey pubKey = null;
 	private PrivateKey privKey = null;
 
 	//server RSA Public Key
 	public PublicKey serverPublicKey = null;
-	
+
 	//AES-Key
 	private SecretKey AES = null;
-	
+
 	private OutputStream toServer = null;
-	
+
 	//AES
 	SecureRandom srand = new SecureRandom();
 	byte [] salt = new byte [8];
 	byte [] iv = new byte[16];
 	IvParameterSpec ivspec = null;
-	
+
 	/*
 	 * Should a method need to die
 	 * come here
@@ -62,7 +66,7 @@ public class client
 		System.out.println(message);
 		System.exit(0);
 	}
-	
+
 	/*
 	 * Method Purpose:
 	 * Check if a String contains only the following:
@@ -95,14 +99,14 @@ public class client
 		}
 		return true;
 	}
-	
+
 	/*
 	 * Check if the action is size 1
 	 * and it is a valid character
 	 * Return true if GOOD
 	 * Return false if ERROR then die
 	 */
-	
+
 	public static boolean isValidAction(String action)
 	{
 		if(action.length() != 1)
@@ -119,7 +123,7 @@ public class client
 			return false;
 		}
 	}
-	
+
 	/*
 	 * Check if the file I am sending is valid
 	 * if it is valid
@@ -132,17 +136,19 @@ public class client
 		try
 		{
 			File information = new File(fileLocation);
-			readFile = new FileInputStream(information);
+			FileInputStream readFile = new FileInputStream(new File(fileLocation));
 
 			//Check if it is too large?
 			data = new byte[(int) information.length()];
-			
+
 			// Get Byte Stream of File
 			int size = readFile.read(data, 0, data.length);
 			if (size != data.length)
 			{
 				die("File wasn't read entirely...");
 			}
+
+			readFile.close();
 			return true;
 		}
 		catch(IOException e)
@@ -150,7 +156,7 @@ public class client
 			return false;
 		}
 	}
-	
+
 	/*
 	 * Check if I have a valid IP
 	 * check for
@@ -167,7 +173,7 @@ public class client
 			//System.out.println("Invalid Number of dots");
 			return false;
 		}
-		
+
 		/*
 		 * Check if the values for all octets 
 		 * is [0, 255] 
@@ -190,7 +196,7 @@ public class client
 		}
 		return true;
 	}
-	
+
 	/*
 	 * Check if I have
 	 * invalid entry for port number
@@ -201,6 +207,15 @@ public class client
 		try
 		{
 			port = Integer.parseInt(portNum);
+			if (port <= 0)
+			{
+				System.out.println("Illegal Port Number argument.");
+				return false;
+			}
+			else if (port > 0 && port < 1024)
+			{
+				System.out.println("Permission Denied to use Ports 1 - 1024");
+			}
 			return true;
 		}
 		catch(NumberFormatException nfe)
@@ -208,21 +223,22 @@ public class client
 			return false;
 		}
 	}
-    
+
 	public static void main (String [] args)
 	{
-		if (args.length != 8)
+		// Build RSA Keys
+		if (args.length == 0)
+		{
+			client networkClient = new client();
+			networkClient.buildKeyPair();
+			networkClient.printRSAKeys();
+			System.exit(0);
+		}
+		else if (args.length != 8)
 		{
 			die("Invalid amount of arguments");
 		}
-		
-		/*
-		 * How to build client RSA Public/Private Key
-		 * client networkClient = new client();
-		 * networkClient.buildKeyPair();
-		 * networkClient.printRSAKeys();
-		 * */
-		
+
 		//Error checking methods invoked
 		if(isValidPassword(args[0])==false)
 		{
@@ -250,8 +266,8 @@ public class client
 
 	/*
 	 * Generate RSA Public Keys
-	 * */
-	
+	 */
+
 	public void buildKeyPair() 
 	{
 		KeyPairGenerator keyPairGenerator = null;
@@ -268,241 +284,239 @@ public class client
 		pubKey = keys.getPublic();
 		privKey = keys.getPrivate();
 	}
-	
+
 	/*
 	 * Print the RSA Public Keys into 
 	 * Object files.
 	 * The location of where it is printed is
 	 * determined by the final strings
-	 * */
-	
-    public void printRSAKeys()
-    {
-	 	ObjectOutputStream pkOUT = null;
+	 */
+
+	public void printRSAKeys()
+	{
+		ObjectOutputStream pkOUT = null;
 		try
 		{
 			pkOUT = new ObjectOutputStream(new FileOutputStream(new File(PUBLICKEYLOCATION)));
 			pkOUT.writeObject(pubKey);
 			pkOUT.flush();
-			
+
 			pkOUT = new ObjectOutputStream(new FileOutputStream(new File(PRIVATEKEYLOCATION)));
 			pkOUT.writeObject(privKey);
 			pkOUT.flush();
-			
+
 			pkOUT.close();
 		}
 		catch(IOException ioe)
 		{
 			ioe.printStackTrace();
 		}
-    }
-	
-    /*
-     * Generate AES Secret Key
-     * AES class variable becomes not null after this
-     * */
-    public void buildAES(String password) 
-    		throws NoSuchAlgorithmException, InvalidKeySpecException
-    {
-    	srand.nextBytes(salt);
-    	srand.nextBytes(iv);
-    	ivspec = new IvParameterSpec(iv);
-    
-    	//Allows me to pick my password, salt, iterations, and keysize
-    	KeySpec passwd = new PBEKeySpec(password.toCharArray(), salt, 1000, 128);
-    	
-    	//Generate AES
-    	SecretKeyFactory factory =
-    		    SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    	SecretKey tmp = factory.generateSecret(passwd);
-    	AES = new SecretKeySpec(tmp.getEncoded(), "AES");
-    }
- 
-    public static byte [] encrypt(PublicKey publicKey, byte [] plaintext) 
-    		throws Exception
-    {
-    	Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-    	cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-    	return cipher.doFinal(plaintext);
-    }
-    
-    public static byte [] encryptKey(PublicKey publicKey, SecretKey sk) 
-    		throws Exception
-    {
-    	Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-    	cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-    	return cipher.doFinal(sk.getEncoded());
-    }
-    
-    public byte [] AESencrypt(byte [] plaintext, SecretKey key) 
-    		throws Exception
-    {
-    	Cipher en = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    	en.init(Cipher.ENCRYPT_MODE, key, ivspec);
-    	return en.doFinal(plaintext);
-    }
-	  
-    public static byte [] sign(byte [] plainText, PrivateKey privateKey)
-    		throws Exception
-    {
-        Signature privateSignature = Signature.getInstance("SHA256withRSA");
-        //Initialize with Private Key
-        privateSignature.initSign(privateKey);
-        //Place plain text into queue
-        privateSignature.update(plainText);
-        //Hash it and sign it with private key
-        byte [] signed = privateSignature.sign();
-        return signed;
-    }
-   
+	}
 
-    public client(String password, String IP, String serverPK, String clientPK, String clientSK)
-    {
-	//Final check, Find the Public Key!
-	ObjectInputStream readObject = null;
-        Object input = null;
+	/*
+	 * Generate AES Secret Key
+	 * AES class variable becomes not null after this
+	 */
+	public void buildAES(String password) 
+			throws NoSuchAlgorithmException, InvalidKeySpecException
+	{
+		srand.nextBytes(salt);
+		srand.nextBytes(iv);
+		ivspec = new IvParameterSpec(iv);
 
-        try
-        {
+		//Allows me to pick my password, salt, iterations, and keysize
+		KeySpec passwd = new PBEKeySpec(password.toCharArray(), salt, 1000, 128);
 
-            //Read all the RSA Keys
-            readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
-            input = readObject.readObject();
-            serverPublicKey = (PublicKey) input;
-			
-            readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
-            input = readObject.readObject();
-            pubKey = (PublicKey) input;
+		//Generate AES
+		SecretKeyFactory factory =
+				SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+		SecretKey tmp = factory.generateSecret(passwd);
+		AES = new SecretKeySpec(tmp.getEncoded(), "AES");
+	}
 
+	public static byte [] encrypt(PublicKey publicKey, byte [] plaintext) 
+			throws Exception
+	{
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		return cipher.doFinal(plaintext);
+	}
 
+	public static byte [] encryptKey(PublicKey publicKey, SecretKey sk) 
+			throws Exception
+	{
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+		return cipher.doFinal(sk.getEncoded());
+	}
 
-            readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
-            input = readObject.readObject();
-            privKey = (PrivateKey) input;
-            readObject.close();
-	
+	public byte [] AESencrypt(byte [] plaintext, SecretKey key) 
+			throws Exception
+	{
+		Cipher en = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		en.init(Cipher.ENCRYPT_MODE, key, ivspec);
+		return en.doFinal(plaintext);
+	}
 
-            //Establish Connection
-            clientSocket = new Socket(IP, port);
-            toServer = clientSocket.getOutputStream();
-			
+	public static byte [] sign(byte [] plainText, PrivateKey privateKey)
+			throws Exception
+	{
+		Signature privateSignature = Signature.getInstance("SHA256withRSA");
+		//Initialize with Private Key
+		privateSignature.initSign(privateKey);
+		//Place plain text into queue
+		privateSignature.update(plainText);
+		//Hash it and sign it with private key
+		byte [] signed = privateSignature.sign();
+		return signed;
+	}
 
-            //Data is read and ready to go!	
-            if(ACTION=='a')
-            {
-		
-                // Get the Instance for AES-128 bit
-                this.buildAES(password);
-				
-                //encrypt the file		
-                byte [] encrypted = this.AESencrypt(data, AES);
-			
+	public client()
+	{
 
-                //Convert AES to byte stream to it can be encrypted
-                byte [] encryptedAES = encryptKey(serverPublicKey, AES);
-				
+	}
 
-                //Send AES-Key
-                toServer.write(encryptedAES);
-                toServer.flush();
-				
+	public client(String password, String IP, String serverPK, String clientPK, String clientSK)
+	{
+		//Final check, Find the Public Key!
+		ObjectInputStream readObject = null;
+		Object input = null;
+		try
+		{
+			//Read all the RSA Keys
+			readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+			input = readObject.readObject();
+			serverPublicKey = (PublicKey) input;
 
-                //Send IV-Parameter
-                toServer.write(iv);
-                toServer.flush();
-				
+			readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
+			input = readObject.readObject();
+			pubKey = (PublicKey) input;
 
-                //Send File
-                toServer.write(encrypted);		
-                toServer.flush();
+			readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
+			input = readObject.readObject();
+			privKey = (PrivateKey) input;
 
-            }
-			
-            else if (ACTION == 'b')
-            {
-                //Send Signed File
-                byte [] signature = sign(data, privKey);			
-                toServer.write(signature);
-                toServer.flush();
-				
-                //Send plain text file
-                toServer.write(data);
-                toServer.flush();
+			readObject.close();
 
-            }
-	
-            else if(ACTION == 'c')
+			//Establish Connection
+			clientSocket = new Socket(IP, port);
+			toServer = clientSocket.getOutputStream();
 
-            {
+			//Data is read and ready to go!	
+			if(ACTION=='a')
+			{
+				// Get the Instance for AES-128 bit
+				this.buildAES(password);
+				//encrypt the file
+				byte [] encrypted = this.AESencrypt(data, AES);
 
-                //Sign File
-                byte [] signature = sign(data, privKey);
+				//Convert AES to byte stream to it can be encrypted
+				byte [] encryptedAES = encryptKey(serverPublicKey, AES);
 
-			
-                //Change the byte of file!
+				//Send AES-Key
+				toServer.write(encryptedAES);
+				toServer.flush();
 
-                if (data[0] != 0x00)
-                {
-                    System.out.format("Original: %x\n", data[0]);
-                    data[0] = (byte) 0x00;
-                    System.out.format("Modified: %x\n", data[0]);
+				//Send IV-Parameter
+				toServer.write(iv);
+				toServer.flush();
 
-                }
-                else
-                {
-                    System.out.format("Original: %x\n", data[0]);
-                    data[0] = (byte) 0xff; 
-                    System.out.format("Modified: %x\n", data[0]);
+				//Send File
+				toServer.write(encrypted);
+				toServer.flush();
+			}
+			else if (ACTION == 'b')
+			{
+				//Send Signed File
+				byte [] signature = sign(data, privKey);			
+				toServer.write(signature);
+				toServer.flush();
 
-                }
-		
-                //Send Signed File
-                toServer.write(signature);
-                toServer.flush();
-				
-                //Send plaintext
-                toServer.write(data);
-                toServer.flush();
+				//Send plain text file
+				toServer.write(data);
+				toServer.flush();
+			}
+			else if(ACTION == 'c')
+			{
+				//Sign File
+				byte [] signature = sign(data, privKey);
 
-            }
-            this.closeConnection();
+				//Change the byte of file!
+				if (data[0] != 0x00)
+				{
+					System.out.format("Original: %x\n", data[0]);
+					data[0] = (byte) 0x00;
+					System.out.format("Modified: %x\n", data[0]);
+				}
+				else
+				{
+					System.out.format("Original: %x\n", data[0]);
+					data[0] = (byte) 0xff; 
+					System.out.format("Modified: %x\n", data[0]);
+				}
 
-        }
+				//Send Signed File
+				toServer.write(signature);
+				toServer.flush();
 
-        catch (UnknownHostException socket)
-        {
-            die("Unknown Host...in constructor\n");	
-        }
-        catch (IOException socket)
-        {
-            die("RSA Files not Found/No connection to Server\n");
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            die("No such Algorithm in constructor\n");
-        }
-        catch(BadPaddingException e)       
-        {
-            die("You have misplace your RSA keys! Did you follow my README?\n");
-        }
-        catch (Exception e)
-        {
-            die("Most likely one of those Crypto stuff malfunctioned\n");
-        }
-    }
+				//Send plaintext
+				toServer.write(data);
+				toServer.flush();
+			}
+			this.closeConnection();
+		}
+		catch (UnknownHostException socket)
+		{
+			die("Unknown Host...in constructor");
+		}
+		catch (IOException socket)
+		{
+			die("RSA Files not Found/No connection to Server");
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			die("No such Algorithm in constructor");
+		}
+		catch(BadPaddingException e)
+		{
+			die("You have misplace your RSA keys! Did you follow my README?");
+		}
+		catch (Exception e)
+		{
+			die("Most likely one of those Crypto stuff malfunctioned");
+		}
+	}
 
-    // This method is to close the connection	 
-    private void closeConnection()
-    {
-        try
-        {
-            toServer.close();
-            clientSocket.close();
-        }
+	// This method is to close the connection
+	private void closeConnection()
+	{
+		try
+		{
+			toServer.close();
+			clientSocket.close();
+		}
+		catch (IOException e)
+		{
+			die("Failed to close connection");
+		}
+	}
 
-        catch (IOException e)
-        {
-            die("Failed to close connection");
-        }
-    }
+	// Build Hash
+	public static String hashFile(String originalString) throws NoSuchAlgorithmException
+	{
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		byte [] encodedhash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
+
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < encodedhash.length; i++) 
+		{
+			String hex = Integer.toHexString(0xff & encodedhash[i]);
+			if(hex.length() == 1) 
+			{
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
+	}
 }
