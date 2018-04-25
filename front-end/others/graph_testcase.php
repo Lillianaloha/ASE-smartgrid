@@ -1,5 +1,3 @@
-<?php include "../db.php";?>
-
 <?php
 error_reporting(E_ALL);
 /* Allow the script to hang around waiting for connections. */
@@ -95,25 +93,15 @@ while(true)
 //        
     }
 //    echo $total;
-    if($total){
-        header('Location: index_graph.php');
-    }   
-    
-//    global $conn;
+    header('Location: index_graph.php');
     $buf_array = explode('{', $total);
+    
+    $file_rewrite = fopen('file.csv', 'w');
+    fclose($file_rewrite);
+    
     for ($i = 1; $i < count($buf_array); $i++){       
         $str = str_replace(array('}'), '', $buf_array[$i]);
         $array = array(explode(',',strval($j).','.$str));
-        list($Va,$Vb,$Vc,$Ia,$Ib,$Ic,$Total_Power,$Total_Fundamental_Power,$Phase_A_Power,$Phase_B_Power,$Phase_C_Power,$Reactive_Power,$Phase_A_Reactive_Power,$Phase_B_Reactive_Power,$Phase_C_Reactive_Power,$Consumed_Power,$Sold_Power) = explode(",",$str);
-       
-        $query = "INSERT INTO smartgrid1 VALUES ('$Va','$Vb','$Vc','$Ia','$Ib','$Ic','$Total_Power','$Total_Fundamental_Power','$Phase_A_Power','$Phase_B_Power','$Phase_C_Power','$Reactive_Power','$Phase_A_Reactive_Power','$Phase_B_Reactive_Power','$Phase_C_Reactive_Power','$Consumed_Power','$Sold_Power')";
-        
-        $result = mysqli_query($conn, $query);
-        
-        if(!$result) {
-            die('Query FAILED' . mysqli_error());
-        }
-        
         $fp = fopen('file.csv', 'a');
         foreach ($array as $fields) {
             fputcsv($fp, array_slice($fields,0,4));

@@ -1,3 +1,5 @@
+<?php include "../db.php";?>
+
 <?php
 error_reporting(E_ALL);
 /* Allow the script to hang around waiting for connections. */
@@ -8,8 +10,8 @@ ob_implicit_flush();
 //Main Computer data that holds SQL Database and website
 $address = 'localhost';
 //$port = 8273;
-$myfile = fopen("portnumber.txt", "r");
-$txt = fread($myfile,filesize("portnumber.txt"));
+$myfile = fopen("port.txt", "r");
+$txt = fread($myfile,filesize("port.txt"));
 $port = intval($txt);
 // Creating Server Socket
 if (($server_sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
@@ -51,7 +53,7 @@ while(true)
 //  To get the data from user interface
 //  if( $_GET["time"] || $_GET["rate"] ) {
 //      $time_rate = "00".$_GET['time'];
-//      $sampling_rate = "00".$_GET['rate'];
+//      $sampling_rate = "000".$_GET['rate'];
 //   }  
 
     $generator_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -78,17 +80,50 @@ while(true)
         echo "Invalid sampling rate input!\n";
 
     //Read input from generator
+    $j = 1;
+    $total = "";
+    static $total;
     while($buf = socket_read($generator_socket, 200))
     {
         //Read from generator
-        echo $buf;
- 
+//        echo $buf;
+        $total .= $buf;
+      
         $content = str_replace($txt,strval($port+1),$txt);
-        $myfile2 = fopen("portnumber.txt", "w");
+        $myfile2 = fopen("port.txt", "w");
         fwrite($myfile2,$content);
+//        
     }
-    echo "<br>"."Exited while loop";
-    echo "<br>"."Reading Smart Grid Generator session complete";
+//    echo $total;
+    if($total){
+        header('Location: index_graph.php');
+    }   
+    
+//    global $conn;
+    $buf_array = explode('{', $total);
+    for ($i = 1; $i < count($buf_array); $i++){       
+        $str = str_replace(array('}'), '', $buf_array[$i]);
+        $array = array(explode(',',strval($j).','.$str));
+        list($Va,$Vb,$Vc,$Ia,$Ib,$Ic,$Total_Power,$Total_Fundamental_Power,$Phase_A_Power,$Phase_B_Power,$Phase_C_Power,$Reactive_Power,$Phase_A_Reactive_Power,$Phase_B_Reactive_Power,$Phase_C_Reactive_Power,$Consumed_Power,$Sold_Power) = explode(",",$str);
+       
+        $query = "INSERT INTO smartgrid1 VALUES ('$Va','$Vb','$Vc','$Ia','$Ib','$Ic','$Total_Power','$Total_Fundamental_Power','$Phase_A_Power','$Phase_B_Power','$Phase_C_Power','$Reactive_Power','$Phase_A_Reactive_Power','$Phase_B_Reactive_Power','$Phase_C_Reactive_Power','$Consumed_Power','$Sold_Power')";
+        
+        $result = mysqli_query($conn, $query);
+        
+        if(!$result) {
+            die('Query FAILED' . mysqli_error());
+        }
+        
+        $fp = fopen('file.csv', 'a');
+        foreach ($array as $fields) {
+            fputcsv($fp, array_slice($fields,0,4));
+        }
+        $j = $j + 1;
+    }
+//    echo "hi";
+//    header('Location: index_graph.php');
+//    echo "<br>"."Exited while loop";
+//    echo "<br>"."Reading Smart Grid Generator session complete";
     socket_close($client_sock);
     break;
 }

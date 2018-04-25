@@ -8,7 +8,7 @@ ob_implicit_flush();
 
 //Main Computer data that holds SQL Database and website
 $address = 'localhost';
-$port = 9001;
+$port = 8153;
 
 // Creating Server Socket
 if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
@@ -40,44 +40,7 @@ do
     //Or we can pre-set IP and port?
     
     do 
-    {
-        /*
-        if (false === ($buf = socket_read($msgsock, 2048, PHP_NORMAL_READ))) 
-        {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        */
-        
-        /*
-        if (false === ($buf = socket_read($generate_Port, 4, PHP_NORMAL_READ))) 
-        {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        if (false === ($buf = socket_read($generate_Port, 4, PHP_NORMAL_READ))) 
-        {
-            echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        */
-        
-        //Get both time and sampling rate from client
-        /*
-        if (false === ($buf = socket_read($time_rate, 4, PHP_NORMAL_READ))) 
-        {
-            echo "Failed to read time rate: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        echo "time rate is :$time_rate";
-        
-        if (false === ($buf = socket_read($sampling_rate, 4, PHP_NORMAL_READ))) 
-        {
-            echo "Failed to read sampling rate: " . socket_strerror(socket_last_error($msgsock)) . "\n";
-            break 2;
-        }
-        */
-        
+    {   
         //Create Socket and connect to Generator
         $generator_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
                                           
@@ -93,7 +56,7 @@ do
     
         
         if ($time_rate > 0)
-            socket_write($generator_socket, pack('N', $time_rate), 4);
+            socket_write($generator_socket, $time_rate, 4);
         else
             echo "Invalid time input!\n";
         
@@ -104,6 +67,7 @@ do
         
         //Now wait until transmission completes...
         $counter = 1;
+        $j = 1;
         while(true)
         {
             //Read from generator
@@ -112,18 +76,48 @@ do
                 echo "Failed to get data from generator..." . socket_strerror(socket_last_error($msgsock)) . "\n";
                 break 2;
             }
+
+            echo "This is the new line:"."<br>";
             echo $buf;
-            if (!$buf = trim($buf))
-            {
-                continue;
+//            $buf = strval($counter).','.$buf;
+            $buf_array = explode('{', $buf);
+            
+            for ($i = 1; $i < count($buf_array); $i++){
+                $str = str_replace(array('}'), '', $buf_array[$i]);
+                $array = array(explode(',',strval($j).','.$str));
+                $fp = fopen('file.csv', 'a');
+                foreach ($array as $fields) {
+                    fputcsv($fp, array_slice($fields,0,4));
+                }
+                $j = $j + 1;
             }
+            
+            echo "This is the second line:"."<br>";
+//            $x = explode(PHP_EOL, $buf);
+            echo $buf_array[0];
+            echo "nononon"."<br>";
+//            $str = str_replace(array('{'), '', $buf);
+//            $str = str_replace(array('}'), ',', $str);
+//            
+//            $array = array(preg_split("/[\s]+/", $str));
+//            $fp = fopen('file.csv', 'a');
+//            foreach ($array as $fields) {
+//                fputcsv($fp, $fields);
+//            }
+//            unlink('file.csv');
+//            if (!$buf = trim($buf))
+//            {
+//                continue;
+//            }
 //            echo $buf;
             if ($time_rate == $counter)
             {
                 break;
             }
-            $counter = $counter + 1;
+            $counter = $counter+1;
+            $j = $j + 1;
         }
+
         
         /*
         if (!$buf = trim($buf)) 
