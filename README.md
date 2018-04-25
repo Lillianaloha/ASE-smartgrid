@@ -1,10 +1,23 @@
 Our team is currently working to build a website allowing communication to the power grid, so that we can implement certain simulations such as price regulation, demand response and power distribution, use a database to save progress and maybe support multiple users connecting at the same time.
 
+What we have completed are showing as follows:
+### Set up a CI/CD pipeline and develop our own test cases [![CircleCI]
+(https://circleci.com/gh/Lillianaloha/test.svg?style=svg)](https://circleci.com/gh/Lillianaloha/test)
+Following the github instruction, we successfully apply Circle CI testing into our project. And by testing, we better grab what we should do, and fix our codes more practicable.
 
-### Current Step: set up Setup a CI/CD pipeline and develop our own trivial test case [![CircleCI](https://circleci.com/gh/Lillianaloha/test.svg?style=svg)](https://circleci.com/gh/Lillianaloha/test)
+### Build a data generator
+Our data generator is built on the basis of a testbed with 20 nodes connecting to smart power meters, which is to simulate a real world power grid. Receiving time and sampling rate from the webpage input, the data generator could generate data based on a timer, and send data back to the webpage and database.
 
-Followed the github instruction, we succesffully get the webpage which showes "Hello world!...". For the trivial test, we first trying to create a simple database, and then test if some entries are exist in the database. However, we couldn't figure out how to let tester read data from the csv file. Then, we try to change the code so that we could create a .txt file and then test if some string exist, but when we try to put the function in the decorator, the website gives a 500 interval server error. We talked with CA Sriharsha and he suggested us try to print a simple header for now. So right now our trivial test could only print the webpage with text "The TeamIDs are smartgrid1, smartgrid2". Finally, we add the badges to our readme.
+### Build a user interface for researchers and educators
+Our website enables users to input time and sampling rate, and get generated data. The plots of current-time and voltage-time would show on the webpage. Moreover, it allows users to download csv files to save data to the local.
+The development of our website promises to make smart grid learning experiences more accessible, more personal, and more relevant. Educators can use the testbed and engage the students as an ideal socially constructed process. For researchers, the web application helps the development of the next generation of the electic utility grid —— performing research, creating innovations, demonstrating advanced wireless communications, and using internet and sense-and-control technologies.
 
---------------------------------------------------------------------------------------------------------------------------------
-We have completed the project using 3 Phase physics equations, But a component we wanted to add but proved to be more challenging than expect (especially with finals season) is to use techniques of machine learning to generate new Smart Meter readings based on previous real readings (acquired from few publicly available datasets). 
+### Build SQL database
+The MySQL database is for data storage and retrieval. It can be updated real-time for users to check the data for the future use.
+
+### Front-end and back-end integration
+We use sockets to connect the front-end webpage and the C codes (data generator). It is a really challenging part in our project, that requires PHP socket and C socket. The webpage enables users to input parameters, and the socket pass data between these two sides.
+
+------------------------------------------------------------------------------------------------------------------------------------------
+We have completed the project using 3 Phase physics equations, but a component we wanted to add but proved to be more challenging than expected (especially with finals season) is to use techniques of machine learning to generate new Smart Meter readings based on previous real readings (acquired from few publicly available datasets). 
 One of the papers that showed the most promise has been attached to this repository. This is to show the project proved to be more intense than I expected.
