@@ -26,7 +26,7 @@ Following the github instruction, we successfully apply Circle CI testing into o
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 We have completed the project using 3 Phase physics equations, but a component we wanted to add but proved to be more challenging than expected (especially with finals season) is to use techniques of machine learning to generate new Smart Meter readings based on previous real readings (acquired from few publicly available datasets). 
-One of the papers that showed the most promise has been attached to this repository. This is to show the project proved to be more intense than I expected.
+One of the papers that showed the most promise has been attached to this repository. This is to show the project proved to be more intense than expected. We would try to fix it for our future work.
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 To better use our product, there is brief description of each folder in our project repository. 'generator' is for data generator which is built by C code. 'verify' is for java RSA file verification system, 'front-end' is for web application design, in which 'db.php' is for MySQL connection, 'plot' is for current-time and voltage-time plot displaying, 'html' includes all the main interfaces, 'css' is for website style, and you can just ignore 'others' subfolder because it is just for our simple test.
