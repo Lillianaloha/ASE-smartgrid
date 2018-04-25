@@ -1,5 +1,3 @@
-package verify;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -301,15 +299,13 @@ public class server implements Runnable
 		// server.jar <file to Hash>
 		else if (args.length == 1)
 		{
-			server hasher = new server();
 			// Read all the file into byte array
 			if(isValidFile(args[1]))
 			{
-				String tobeHashed = new String(data);
 				String Hash = null;
 				try 
 				{
-					Hash = new String(hasher.hashFile(data));
+					Hash = new String(server.hashFile(data));
 				}
 				catch (NoSuchAlgorithmException e)
 				{
