@@ -19,6 +19,9 @@ The MySQL database is for data storage and retrieval. It can be updated real-tim
 ### Front-end and back-end integration
 We use sockets to connect the front-end webpage and the C codes (data generator). It is a really challenging part in our project, that requires PHP socket and C socket. The webpage enables users to input parameters, and the socket pass data between these two sides.
 
+### RSA file verification system using java
+This is another function we add to the project that allows RSA file verification.
+
 ------------------------------------------------------------------------------------------------------------------------------------------
 We have completed the project using 3 Phase physics equations, but a component we wanted to add but proved to be more challenging than expected (especially with finals season) is to use techniques of machine learning to generate new Smart Meter readings based on previous real readings (acquired from few publicly available datasets). 
 One of the papers that showed the most promise has been attached to this repository. This is to show the project proved to be more intense than I expected.
