@@ -71,7 +71,7 @@ img.avatar {
 		<div id="header">
 			<div class="header-content">
 				<div class="logo">
-					<a href="index.html"> <img src="../img/a.png" height="82" width="256" /> </a> 
+					<a href="../index.php"> <img src="../img/a.png" height="82" width="256" /> </a> 
 <!--					logo picture should be changed-->
 					<div class="key">
                         <p>Class Project</p>
@@ -79,10 +79,10 @@ img.avatar {
 				</div>
 				<div class="nav">
 					<ul>
-						<li> <a href="../index.html">Home</a> </li>
+						<li> <a href="../index.php">Home</a> </li>
 						<li class="active"> <a href="success.php">Search</a> </li>
-                        <li> <a href="about.html">About Us</a> </li>
-						<li> <a href="future.html">Future</a> </li>
+                        <li> <a href="about.php">About Us</a> </li>
+						<li> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -106,7 +106,8 @@ img.avatar {
 				
 			</div>
 <!--		<form action="../testcase.php" method="get">	-->
-        <form action="../plot/graph.php" method="get">
+<!--        <form action="../plot/graph.php" method="get">-->
+         <form action="../plot/graph_testcase.php" method="get">
           <div class="imgcontainer">
             <img src="../img/gateway.png" height="70" width="90">
             <h1>Enter</h1>
@@ -117,10 +118,12 @@ img.avatar {
                 <input type="text" placeholder="Enter amount of time" name="time" >
             <label for="rate"><b>Rate</b></label>
                 <input type="text" placeholder="Enter sampling rate" name="rate" >            
+<!--
              <label for="ip"><b>IP</b></label>
                 <input type="text" placeholder="Enter IP address" name="ip" >            
             <label for="port"><b>Port</b></label>
                 <input type="text" placeholder="Enter port number" name="port" >
+-->
             <button type="submit">Search</button>
           </div>
         </form>
@@ -129,19 +132,14 @@ img.avatar {
 		<!--3、尾部-->
 		<div id="footer">
 			<p>
-				<a href="../index.html">Home</a> |
+				<a href="../index.php">Home</a> |
 				<a href="success.php">Search</a> |
-				<a href="about.html">About Us</a> |
-				<a href="future.html">Future</a> |
+				<a href="about.php">About Us</a> |
+				<a href="future.php">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu
 			</p>
 		</div>
 	</body>
-</html>
-
-
-	
-		
-
+</html>		
