@@ -354,6 +354,7 @@ public class server implements Runnable
 			// See Method at the VERY BOTTOM
 			if(isValidFile(args[0]))
 			{
+<<<<<<< HEAD
 				String Hash = null;
 				try 
 				{
@@ -383,6 +384,9 @@ public class server implements Runnable
 					System.out.println("File has been changed!");
 				}
 				System.exit(0);
+=======
+				invalidInstance(args[0], args[1]);
+>>>>>>> 2b3ce1d6ad80d39f672fff689f6e2ac3a2459295
 			}
 			else
 			{
