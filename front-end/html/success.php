@@ -107,7 +107,8 @@ img.avatar {
 			</div>
 <!--		<form action="../testcase.php" method="get">	-->
 <!--        <form action="../plot/graph.php" method="get">-->
-         <form action="../plot/graph_testcase.php" method="get">
+<!--         <form action="../plot/graph_testcase.php" method="get">-->
+         <form action="../plot/plot.php" method="get">
           <div class="imgcontainer">
             <img src="../img/gateway.png" height="70" width="90">
             <h1>Enter</h1>
