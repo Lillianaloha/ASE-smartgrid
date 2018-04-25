@@ -1,16 +1,6 @@
 <?php include "../db.php";?>
 <!DOCTYPE html>
 <html>
-<head>
-
-</head>
-<body>
-
-</body>
-</html>
-
-
-<html>
 	<head>
 		<meta charset="UTF-8">
 		<title> Smartgrid | Search | Results</title>
@@ -88,36 +78,20 @@ button {
 <div id="graphdiv"></div>
 <script type="text/javascript">
     
-  g = new Dygraph(
+  g = new Dygraph(document.getElementById("graphdiv"),
 
-    // containing div
-    document.getElementById("graphdiv"),
-
-    // CSV or path to a CSV file.
+    // Read the CSV file to plot the graph, show three curves, the y-axis is voltage and x-axis is time.
     "file.csv",
       {labels:["id","va","vb","vc"],       
       }
   );
 </script>
-        
-        
-        
-        
-        
+<!--         After get the straightforward graph, click "Check Table", users can see the data in 18 fields         -->
         <form action="../html/table.php" method="post">
           <div class="container">          
-<!--
-             <label for="ip"><b>IP</b></label>
-                <input type="text" placeholder="Enter IP address" name="ip" >            
-            <label for="port"><b>Port</b></label>
-                <input type="text" placeholder="Enter port number" name="port" >
--->
             <button type="submit">Check Table</button>
           </div>
         </form>        
-        
-        
-
 		</div>
 
 	
