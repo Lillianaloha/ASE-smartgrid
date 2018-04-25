@@ -9,7 +9,7 @@
 #include <unistd.h>     // fork()
 #include <errno.h>
 
-#include "socket.h"
+#include "generate.h"
 #include "apue.h"
 
 # define PI 3.14159265
@@ -92,7 +92,7 @@ static void breakLoop(int signo)
 // to generate smart meter readings
 void * generateData()
 {
-    int time = 0;
+    int time_tick = 0;
     double cosAngle = 0; 
     double sinAngle = 0; 
     time_t current;
@@ -121,16 +121,14 @@ void * generateData()
             continue;		
 	}
 
-	++time;
+	++time_tick;
 
         // Compute angle for different phases
-	cosAngle = cos((double) (omega * t + phi);
-	sinAngle = sin((double) (omega * t + phi);
-
+	cosAngle = cos((double) (omega * time_tick + phi));
+	sinAngle = sin((double) (omega * time_tick + phi));
         
         // Lock the data, only one thread should write
         // All other threads should NOT read
-
         pthread_rwlock_wrlock(&d -> rwlock);
              
         // Independant Variables
@@ -171,7 +169,7 @@ void * generateData()
         
 	// Using Power Triangle (See references)
         // Get the total power from both Active and Reactive Power
-        d -> Total_FundamentalPower = (int) sqrt((double) ReactivePower * ReactivePower + Total_Power * Total_Power);
+        d -> Total_FundamentalPower = (int) sqrt((double) d->ReactivePower * d->ReactivePower + d->Total_Power * d->Total_Power);
 
 	// Assume home has some solar panel.
 	// https://solarpowerrocks.com/solar-basics/how-much-electricity-does-a-solar-panel-produce/
@@ -211,7 +209,7 @@ void * run(void * serv)
     */
 
 
-    char printData [255] = "";
+    char printData [1000] = "";
 
     time_t current;
     time_t previous;
@@ -325,14 +323,6 @@ void * run(void * serv)
     remoteSock = createClientSocket(remote_ip, remote_portNum);      
 */   
 
-    int Va, Vb, Vc;
-    int Ia, Ib, Ic;
-    int Total_Power, Total_FundamentalPower;
-    int PhaseA_Power, PhaseB_Power, PhaseC_Power;
-    int ReactivePower;
-    int PhaseA_ReactivePower, PhaseB_ReactivePower, PhaseC_ReactivePower;
-    int Consumed_Power, Sold_Power;
-
     // Start While
     time(&current);
     time(&thread_epoch);
@@ -359,40 +349,27 @@ void * run(void * serv)
             continue;
         }
 
+        //LOCK
     	pthread_rwlock_rdlock(&d -> rwlock);
-        Va = d -> Va;
-    	Vb = d -> Vb;
-    	Vc = d -> Vc;
-    	Ia = d -> Ia;
-    	Ib = d -> Ib;
-    	Ic = d -> Ic;
-    	Total_Power = d -> Total_Power;
-    	Total_FundamentalPower = d -> Total_FundamentalPower;
-    	PhaseA_Power = d -> PhaseA_Power; 
-    	PhaseB_Power = d -> PhaseB_Power;
-    	PhaseC_Power = d -> PhaseC_Power;
-    	ReactivePower = d -> ReactivePower;
-    	PhaseA_ReactivePower = d -> PhaseA_ReactivePower;
-    	PhaseB_ReactivePower = d -> PhaseB_ReactivePower;
-    	PhaseC_ReactivePower = d -> PhaseC_ReactivePower;
-    	Consumed_Power = d -> Consumed_Power;
-    	Sold_Power = d -> Sold_Power;
-        pthread_rwlock_unlock(&d -> rwlock);
-
+   
     	sprintf(printData, "{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}",
-    	        Va, Vb, Vc, Ia, Ib, Ic, Total_Power, Total_FundamentalPower, PhaseA_Power,
-    	        PhaseB_Power, PhaseC_Power, ReactivePower, PhaseA_ReactivePower, PhaseB_ReactivePower, 
-    	        PhaseC_ReactivePower, Consumed_Power, Sold_Power);
+    	        d->Va, d->Vb, d->Vc, d->Ia, d->Ib, d->Ic, d->Total_Power, d->Total_FundamentalPower, d->PhaseA_Power,
+    	        d->PhaseB_Power, d->PhaseC_Power, d->ReactivePower, d->PhaseA_ReactivePower, d->PhaseB_ReactivePower, 
+    	        d->PhaseC_ReactivePower, d->Consumed_Power, d->Sold_Power);
+
+        //UNLOCK
+        pthread_rwlock_unlock(& d->rwlock);
+
     	fprintf(stdout, "%s\n", printData);
     	Send(clntSock, printData);
         if(current == time_out)
         {
+            printf("Reader Thread time expired...\n");
+            close(clntSock);
             break;
         }
     }
-
-    printf("Reader Thread time expired...");
-    close(clntSock);
+    printf("Thread is exiting...\n");
     //close(remoteSock);
     pthread_exit(NULL);
 }

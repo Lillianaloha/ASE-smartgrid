@@ -1,5 +1,5 @@
-#ifndef SOCKET_H_
-#define SOCKET_H_
+#ifndef GENERATE_H_
+#define GENERATE_H_
 
 #include <sys/socket.h>
 #include <stdbool.h>
@@ -20,6 +20,7 @@ void die(char * message);
 int randomize(int input, double flexibility);
 int volts();
 int solarPanel();
+int generateRandom(int min, int max);
 
 // Data structure containing generated data...
 struct data
