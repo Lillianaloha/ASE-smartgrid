@@ -9,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -48,7 +47,7 @@ public class server implements Runnable
 
 	//server RSA Keys
 	public PublicKey pubKey = null;
-	private PrivateKey privKey = null;
+	private static PrivateKey privKey = null;
 
 	//client RSA public key
 	public PublicKey clientPublicKey = null;
@@ -300,8 +299,23 @@ public class server implements Runnable
 		else if (args.length == 1)
 		{
 			// Read all the file into byte array
-			if(isValidFile(args[1]))
+			if(isValidFile(args[0]))
 			{
+				//Establish Connection
+			    //Socket clientSocket = new Socket(IP, port);
+				//toServer = clientSocket.getOutputStream();
+				//byte [] signature = null;
+				/*
+				try 
+				{
+					signature = sign(data, privKey);
+				} 
+				catch (Exception e1)
+				{
+					e1.printStackTrace();
+				}
+				*/
+				
 				String Hash = null;
 				try 
 				{
@@ -329,20 +343,60 @@ public class server implements Runnable
 		}
 
 		// Run anomaly detection
-		// server.jar <file to Hash> <given percentage>
-		else if (args.length == 2)
+		// server.jar "compare" <data set> <given percentage>
+		else if (args.length == 3)
 		{
+			if (!args[0].equals("verify"))
+			{
+				die("What are you trying to do?");
+			}
+			
 			// See Method at the VERY BOTTOM
-			try
+			if(isValidFile(args[0]))
 			{
-				invalidInstance(args[1], args[2]);
+				String Hash = null;
+				try 
+				{
+					Hash = new String(server.hashFile(data));
+				}
+				catch (NoSuchAlgorithmException e)
+				{
+					e.printStackTrace();
+				}
+				// Print the Hash
+				if (Hash != null)
+				{
+					System.out.println(Hash);
+				}
+				else
+				{
+					die("Hash is NULL!");
+				}
+				
+				//Compare with input!
+				if (Hash.equals(args[2]))
+				{
+					System.out.print("File hasn't been changed!");
+				}
+				else 
+				{
+					System.out.println("File has been changed!");
+				}
+				System.exit(0);
 			}
-			catch(Exception fn)
+			else
 			{
-				die("Either file not found, or double was not parsed correctly");
+				die("Input file does not exist!");
 			}
-			System.exit(0);
 		}
+		
+		// Compare Hash
+		// server.jar <dataset> <hash given by website>
+		else if (args.length == 3)
+		{
+			
+		}
+		
 		if(args.length != 5)
 		{
 			die("Invalid amount of arguments");

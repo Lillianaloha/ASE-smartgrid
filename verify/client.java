@@ -1,20 +1,14 @@
-//Name: Andrew Quijano
-//UNI: afq2101
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -40,8 +34,8 @@ public class client
 	private static final String PRIVATEKEYLOCATION = "./clientPrivateKey.obj";
 
 	//client RSA Keys
-	public PublicKey pubKey = null;
-	private PrivateKey privKey = null;
+	public static PublicKey pubKey = null;
+	private static PrivateKey privKey = null;
 
 	//server RSA Public Key
 	public PublicKey serverPublicKey = null;
@@ -236,9 +230,8 @@ public class client
 		// Build RSA Keys
 		if (args.length == 0)
 		{
-			client networkClient = new client();
-			networkClient.buildKeyPair();
-			networkClient.printRSAKeys();
+			client.buildKeyPair();
+			client.printRSAKeys();
 			System.exit(0);
 		}
 		else if (args.length != 8)
@@ -275,7 +268,7 @@ public class client
 	 * Generate RSA Public Keys
 	 */
 
-	public void buildKeyPair() 
+	public static void buildKeyPair() 
 	{
 		KeyPairGenerator keyPairGenerator = null;
 		try 
@@ -299,7 +292,7 @@ public class client
 	 * determined by the final strings
 	 */
 
-	public void printRSAKeys()
+	public static void printRSAKeys()
 	{
 		ObjectOutputStream pkOUT = null;
 		try
@@ -376,11 +369,6 @@ public class client
 		//Hash it and sign it with private key
 		byte [] signed = privateSignature.sign();
 		return signed;
-	}
-
-	public client()
-	{
-
 	}
 
 	public client(String password, String IP, String serverPK, String clientPK, String clientSK)
@@ -506,24 +494,5 @@ public class client
 		{
 			die("Failed to close connection");
 		}
-	}
-
-	// Build Hash
-	public static String hashFile(String originalString) throws NoSuchAlgorithmException
-	{
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		byte [] encodedhash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
-
-		StringBuffer hexString = new StringBuffer();
-		for (int i = 0; i < encodedhash.length; i++) 
-		{
-			String hex = Integer.toHexString(0xff & encodedhash[i]);
-			if(hex.length() == 1) 
-			{
-				hexString.append('0');
-			}
-			hexString.append(hex);
-		}
-		return hexString.toString();
 	}
 }
