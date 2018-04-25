@@ -89,7 +89,7 @@
                     <td height="60" align="center">Hash Code Here</td>
                   </tr>
                   <tr>
-                    <td height="60" align="center"><a href="../plot/csvtohash/file5.csv">File 3</a></td>
+                    <td height="60" align="center"><a href="../plot/csvtohash/file6.csv">File 3</a></td>
                     <td height="60" align="center">Hash Code Here</td>
                   </tr>
                 </table>
