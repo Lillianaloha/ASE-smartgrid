@@ -7,6 +7,7 @@ Our data generator is built on the basis of a testbed with 20 nodes connecting t
 
 ### Build a user interface for researchers and educators
 Our website enables users to input time and sampling rate, and get generated data. The plots of current-time and voltage-time would show on the webpage. Moreover, it allows users to download csv files to save data to the local.
+
 The development of our website promises to make smart grid learning experiences more accessible, more personal, and more relevant. Educators can use the testbed and engage the students as an ideal socially constructed process. For researchers, the web application helps the development of the next generation of the electic utility grid —— performing research, creating innovations, demonstrating advanced wireless communications, and using internet and sense-and-control technologies.
 
 ### Build SQL database
@@ -29,5 +30,7 @@ One of the papers that showed the most promise has been attached to this reposit
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 To better use our product, there is brief description of each folder in our project repository. 'generator' is for data generator which is built by C code. 'verify' is for java RSA file verification system, 'front-end' is for web application design, in which 'db.php' is for MySQL connection, 'plot' is for current-time and voltage-time plot displaying, 'html' includes all the main interfaces, 'css' is for website style, and you can just ignore 'others' subfolder because it is just for our simple test.
+
 In 'plot' subfolder, our most important file is 'socket.php', which is for socket connection between front-end and back-end parts, and you can go to check more comments there.
+
 Moreover it will automatically jump to 'index_graph.php' (the plot page) when data is passing back. When you click on the button in the plot page, it will jump to a new page 'table.php' in 'html' subfolder which displays the newest 12 data saved in the MySQL database. And when you click on the button in the table page, it will jump to 'csv.php' to enable users download csv files.
