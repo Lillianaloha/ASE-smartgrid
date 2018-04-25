@@ -1,5 +1,4 @@
 <?php include "../db.php";?>
-<?php include "../function.php";?>
 
 <!DOCTYPE html>
 <html>
