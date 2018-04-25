@@ -3,7 +3,7 @@
 
 <?php 
                 global $conn;
-                $query2 = "SELECT * FROM smartgrid LIMIT 10";
+                $query2 = "SELECT * FROM smartgrid2 ORDER BY `Id` DESC LIMIT 12";
                 $result = mysqli_query($conn, $query2);
                 if(!$result) {
                     die('Query FAILED' . mysqli_error());
@@ -46,25 +46,6 @@
                     $td17 .= "<td>".$row['Consumed Power']."</td>";
                     $td18 .= "<td>".$row['Sold Power']."</td>";
                 }
-//                    echo "<br>";
-//                    echo "Va: ".$row['Va']."-".
-//                    "Vb: ".$row['Vb']."； ".
-//                    "Vc: ".$row['Vc']."； ".
-//                    "Ia: ".$row['Ia']."； ".
-//                    "Ib: ".$row['Ib']."； ".
-//                    "Ic: ".$row['Ic']."<br>".
-//                    "Total_Power: ".$row['Total Power']."； ".
-//                    "Total_Fundamental_Power: ".$row['Total Fundamental Power']."； ".
-//                    "Phase_A_Power: ".$row['Phase A Power']."； ".
-//                    "Phase_B_Power: ".$row['Phase B Power']."； ".
-//                    "Phase_C_Power: ".$row['Phase C Power']."； ".
-//                    "Reactive_Power: ".$row['Reactive Power']."<br>".
-//                    "Phase_A_Reactive_ower: ".$row['Phase A Reactive Power']."； ".
-//                    "Phase_B_Reactive_Power: ".$row['Phase B Reactive Power']."； ".
-//                    "Phase_C_Reactive_Power: ".$row['Phase C Reactive Power']."； ".
-//                    "Consumed_Power: ".$row['Consumed Power']."； ".
-//                    "Sold_Power: ".$row['Sold Power']."<br>";       
-//                }
 ?>
 
 
@@ -77,6 +58,20 @@
 		<link rel="stylesheet" href="../css/base.css" />
 		<link rel="stylesheet" href="../css/index.css" />
 		<link rel="stylesheet" href="../css/success.css" />
+    <style>
+        
+        button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 50px;
+    display: table;
+    border: none;
+    cursor: pointer;
+    width: 30%;
+}
+        
+        </style>
 
     </head>
 
@@ -85,7 +80,7 @@
 		<div id="header">
 			<div class="header-content">
 				<div class="logo">
-					<a href="../index.html"> <img src="../img/a.png" height="82" width="256" /> </a> 
+					<a href="../index.php"> <img src="../img/a.png" height="82" width="256" /> </a> 
 <!--					logo picture should be changed-->
 					<div class="key">
                         <p>Class Project</p>
@@ -93,10 +88,10 @@
 				</div>
 				<div class="nav">
 					<ul>
-						<li> <a href="../index.html">Home</a> </li>
+						<li> <a href="../index.php">Home</a> </li>
 						<li class="active"> <a href="success.php">Search</a> </li>
-                        <li> <a href="about.html">About Us</a> </li>
-						<li> <a href="server.html">Future</a> </li>
+                        <li> <a href="about.php">About Us</a> </li>
+						<li> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -121,9 +116,15 @@
 			</div>
             
                <div class="container">
+               <h2 align="center">
+                    ---------------
+               </h2>
                 <h2 align="center">Information Table</h2>
+                <h2 align="center">
+                    ---------------
+               </h2>
                 
-                <table border="1" align="center">
+                <table style="width:80%" border="1" align="center">
                 <thead>
                     <tr align="center">
                         <th>Id</th>
@@ -201,16 +202,23 @@
                    </table>
 <!--                   <div></div>-->
             </div>
+                   
+            <form action="csv.php" method="get">
+
+          <div class="container">
+            <button type="submit">Download CSV</button>
+          </div>
+        </form>
 		</div>
 
 	
 		<!--3、尾部-->
 		<div id="footer">
 			<p>
-				<a href="../index.html">Home</a> |
+				<a href="../index.php">Home</a> |
 				<a href="success.php">Search</a> |
-				<a href="about.html">About Us</a> |
-				<a href="future.html">Future</a> |
+				<a href="about.php">About Us</a> |
+				<a href="future.php">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu

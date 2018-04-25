@@ -1,6 +1,3 @@
-<?php include "../db.php";?>
-<?php include "../function.php";?>
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -16,7 +13,7 @@
 		<div id="header">
 			<div class="header-content">
 				<div class="logo">
-					<a href="../index.html"> <img src="../img/a.png" height="82" width="256" /> </a> 
+					<a href="../index.php"> <img src="../img/a.png" height="82" width="256" /> </a> 
 <!--					logo picture should be changed-->
 					<div class="key">
                         <p>Class Project</p>
@@ -24,9 +21,9 @@
 				</div>
 				<div class="nav">
 					<ul>
-						<li> <a href="../index.html">Home</a> </li>
+						<li> <a href="../index.php">Home</a> </li>
 						<li> <a href="success.php">Search</a> </li>
-                        			<li class="active"> <a href="about.php">About Us</a> </li>
+                        <li class="active"> <a href="about.php">About Us</a> </li>
 						<li> <a href="future.php">Future</a> </li>
 					</ul>
 				</div>
@@ -60,7 +57,7 @@
 					1. Generate data on gateway (Offline scenario) <br>
 					2. Generating synthetic “smart meter” data from each node (Online Scenario) <br>
 					3. Assign a table or database for each registered group/team. Database on the server <br>
-                    			4. Storage and Retrieval of data from database located at the gateway <br>
+                    4. Storage and Retrieval of data from database located at the gateway <br>
 
 						
 					</p>
@@ -71,7 +68,7 @@
 		<!--3、尾部-->
 		<div id="footer">
 			<p>
-				<a href="../index.html">Home</a> |
+				<a href="../index.php">Home</a> |
 				<a href="success.php">Search</a> |
 				<a href="about.php">About Us</a> |
 				<a href="future.php">Future</a> |

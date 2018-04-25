@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+x<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="UTF-8">
@@ -15,7 +15,7 @@
 		<div id="header">
 			<div class="header-content">
 				<div class="logo">
-					<a href="index.html"> <img src="img/a.png" height="75" width="280" /> </a> 
+					<a href="index.php"> <img src="img/a.png" height="75" width="280" /> </a> 
 
 					<div class="key">
                         <p>Advanced Software Engineering Project</p>
@@ -23,10 +23,10 @@
 				</div>
 				<div class="nav">
 					<ul>
-						<li class="active"> <a href="index.html">Home</a> </li>
+						<li class="active"> <a href="index.php">Home</a> </li>
 						<li> <a href="html/success.php">Search</a> </li>
-                        <li> <a href="html/about.html">About Us</a></li>
-						<li> <a href="html/future.html">Future</a> </li>
+                        <li> <a href="html/about.php">About Us</a></li>
+						<li> <a href="html/future.php">Future</a> </li>
 					</ul>
 				</div>
 			</div>
@@ -93,8 +93,8 @@
 			<p>
 				<a href="index.html">Home</a> |
 				<a href="html/success.php">Search</a> |
-				<a href="html/about.html">About Us</a> |
-				<a href="html/future.html">Future</a> |
+				<a href="html/about.php">About Us</a> |
+				<a href="html/future.php">Future</a> |
 			</p>
 			<p>
 				E-mail: qz2302@columbia.edu
@@ -106,22 +106,18 @@
 /jquery/1.4.0/jquery.min.js"></script>
 <!--     <script type="text/javascript" src="jq.js"></script> -->
     <script type="text/javascript">
-
     	var a;
     	function stoproll(){
     		// $(".hover_style").css("background-color": "grey");
     		a=document.querySelector(".hover_style");
     		a.style.marginLeft='0px';
     	}
-
     	// $(function(){
     	// 	$(".hover_style").click(function(e){
     	// 		$(this).stop(true,false).animate({"margin-left": "0px"},500);
     	// 	});
     	// });
-
     // $(function(){
-
     // $(".hover_style").mouseleave(function(e){
     // 	$(this).animate({"margin-left":"+10px"},500);
     // }).mouseover(function(e){
@@ -129,10 +125,6 @@
     // });
     // });  
           
-
-
-
-
         // function AutoScroll(obj) {  
   
         //     $(obj).animate({  
@@ -141,15 +133,10 @@
         //         $(this).css({ "margin-left": "0px" }).appendTo(this);  
         //     });  
         // }  
-
         // $(function() {  
         //     var myar = setInterval('AutoScroll(".hover_style")', 5000)  
         //     $(".hover_style").hover(function() { clearInterval(myar); }, function() { myar = setInterval('AutoScroll(".hover_style")', 5000) });  
         // });
-
-
-
-
     	// var s=1;
     	// function mouseover1(){
     	// 	// var p=document.getElementsByClassName("p_over");
@@ -167,10 +154,7 @@
     	// 		p.style.size="30px";
     	// 	}
     	// 	s=1;
-
     	// }
-
-
     	// $(function(){
     	// 	$("#p1").mouseover(function(){
     	// 		var p=document.getElementById("p1");
