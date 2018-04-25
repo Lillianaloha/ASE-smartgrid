@@ -1,9 +1,9 @@
-
 Our team is currently working to build a website allowing communication to the power grid, so that we can implement certain simulations such as price regulation, demand response and power distribution, use a database to save progress and maybe support multiple users connecting at the same time.
 
 What we have completed are showing as follows:
 ### Set up a CI/CD pipeline and develop our own test cases [![CircleCI]
 (https://circleci.com/gh/Lillianaloha/test.svg?style=svg)](https://circleci.com/gh/Lillianaloha/test)
+
 Following the github instruction, we successfully apply Circle CI testing into our project. And by testing, we better grab what we should do, and fix our codes more practicable.
 
 ### Build a data generator
