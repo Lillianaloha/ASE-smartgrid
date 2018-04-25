@@ -198,9 +198,10 @@ public class client
 	}
 
 	/*
-	 * Check if I have
-	 * invalid entry for port number
-	 * by catching numberformat exception
+	 * Check if I have invalid entry 
+	 * for port number by catching 
+	 * Number Format exception
+	 * and make sure I have valid entries (above 1024 < 
 	 */
 	public static boolean isValidPortNumber(String portNum)
 	{
@@ -212,9 +213,15 @@ public class client
 				System.out.println("Illegal Port Number argument.");
 				return false;
 			}
+			else if (port > 65535)
+			{
+				System.out.println("Port Number too High!");
+				return false;
+			}
 			else if (port > 0 && port < 1024)
 			{
 				System.out.println("Permission Denied to use Ports 1 - 1024");
+				return false;
 			}
 			return true;
 		}

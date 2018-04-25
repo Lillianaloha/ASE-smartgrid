@@ -133,46 +133,46 @@ public class server implements Runnable
 				//Get the AES-Cipher, read 256 bytes
 				fromClient.read(signature);
 
-			//Decrypt the key using the Server Private RSA Key
-			//Acquire the AES Key
-			byte [] key = decrypt(privKey, signature);
-			AES = new SecretKeySpec(key, "AES");
+				//Decrypt the key using the Server Private RSA Key
+				//Acquire the AES Key
+				byte [] key = decrypt(privKey, signature);
+				AES = new SecretKeySpec(key, "AES");
 
-			//Get the IV Parameter
-			byte [] Ivy = new byte[16]; 
-			fromClient.read(Ivy);
-			ivspec = new IvParameterSpec(Ivy);
+				//Get the IV Parameter
+				byte [] Ivy = new byte[16]; 
+				fromClient.read(Ivy);
+				ivspec = new IvParameterSpec(Ivy);
 
-			//Read the file and decrypt it with the AES Key
-			byte [] answer = fromClient.readAllBytes();
-			answer = AESdecrypt(answer, AES);
+				//Read the file and decrypt it with the AES Key
+				byte [] answer = fromClient.readAllBytes();
+				answer = AESdecrypt(answer, AES);
 
-			/*
-			 * Write the file to 
-			 * current directory
-			 * */
-			FileOutputStream stream = new FileOutputStream("/home/andrew/test.txt");
-			stream.write(answer);
-			break;
+				/*
+				 * Write the file to 
+				 * current directory
+				 * */
+				FileOutputStream stream = new FileOutputStream("/home/andrew/test.txt");
+				stream.write(answer);
+				break;
 
 			//verify
 			case('v'):
 				//Get the Signature Hash, 256-bytes
 				fromClient.read(signature);
 
-			//Get File
-			byte [] file = fromClient.readAllBytes();
+				//Get File
+				byte [] file = fromClient.readAllBytes();
 
-			//Verify it
-			if(verify (file, signature, clientPublicKey))
-			{
-				System.out.println("signature is valid");
-			}
-			else
-			{
-				System.out.println("signature is invalid");
-			}
-			break;
+				//Verify it
+				if(verify (file, signature, clientPublicKey))
+				{
+					System.out.println("signature is valid");
+				}
+				else
+				{
+					System.out.println("signature is invalid");
+				}
+				break;
 
 			default:
 				die("Invalid char argument!");
@@ -193,17 +193,31 @@ public class server implements Runnable
 	}
 
 	/*
-	 * Check if the port number is not a
-	 * number. If I get a NumberFormat Exception
-	 * that is how to catch this.
-	 * Return true if GOOD
-	 * Return false if ERROR then die
-	 * */
-	public static boolean isValidPortNumber(String portNumber)
+	 * Check if I have invalid entry 
+	 * for port number by catching 
+	 * Number Format exception
+	 * and make sure I have valid entries (above 1024 < 
+	 */
+	public static boolean isValidPortNumber(String portNum)
 	{
 		try
 		{
-			port = Integer.parseInt(portNumber);
+			port = Integer.parseInt(portNum);
+			if (port <= 0)
+			{
+				System.out.println("Illegal Port Number argument.");
+				return false;
+			}
+			else if (port > 65535)
+			{
+				System.out.println("Port Number too High!");
+				return false;
+			}
+			else if (port > 0 && port < 1024)
+			{
+				System.out.println("Permission Denied to use Ports 1 - 1024");
+				return false;
+			}
 			return true;
 		}
 		catch(NumberFormatException nfe)
@@ -211,7 +225,7 @@ public class server implements Runnable
 			return false;
 		}
 	}
-
+	
 	/*
 	 * Check if the action is size 1
 	 * and it is a valid character
@@ -464,8 +478,6 @@ public class server implements Runnable
 		scanner.close();
 		return counter;
 	}
-
-
 
 	// Close Socket
 	private void closeConnection()
