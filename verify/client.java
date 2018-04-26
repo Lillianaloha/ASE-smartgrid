@@ -2,10 +2,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -109,7 +106,7 @@ public class client
 			return false;
 		}
 		ACTION = action.charAt(0);
-		if (ACTION == 'a' || ACTION == 'b' || ACTION == 'c' || ACTION == 'v')
+		if (ACTION == 'a' || ACTION == 'b' || ACTION == 'c' || ACTION == 's')
 		{
 			return true;
 		}
@@ -257,7 +254,7 @@ public class client
 				die("I/O exception caught, File does not exist!");
 			}
 			// Instead of password, passing in filename...
-			client networkClient = new client(args[3], args[2], null, null, null);
+			client networkClient = new client(args[3], args[1], null, null, null);
 		}
 		
 		else if (args.length != 8)
@@ -406,7 +403,7 @@ public class client
 		{
 			// Only read key on default
 			// For ASE...Keys will be given to you...
-			if(ACTION != 'v')
+			if(ACTION != 's')
 			{
 				//Read all the RSA Keys
 				readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
@@ -423,6 +420,19 @@ public class client
 
 				readObject.close();
 			}
+/*
+			else
+			{
+				readObject = new ObjectInputStream(new FileInputStream(new File("./PublicKey/clientPublicKey.obj")));
+				input = readObject.readObject();
+				pubKey = (PublicKey) input;
+
+				readObject = new ObjectInputStream(new FileInputStream(new File("./PrivateKey/clientPublicKey.obj")));
+				input = readObject.readObject();
+				privKey = (PrivateKey) input;
+
+				readObject.close();
+			}*/
 
 			//Establish Connection
 			clientSocket = new Socket(IP, port);
@@ -491,11 +501,23 @@ public class client
 			}
 			
 			// ASE PLUG IN
-			else if (ACTION == 'v')
+			else if (ACTION == 's')
 			{
 				byte [] signature = new byte [256];
+
+				//Lesson DO NOT CALL socket.getI/O Stream twice! Java Exception!
+
+				/*
+				ObjectOutputStream sendSize = new ObjectOutputStream(toServer);
+				sendSize.writeInt(password.length());
+				clientSocket.getOutputStream().write(password.getBytes("UTF-8"));
+				sendSize.close();
+				*/
+
+				PrintWriter pw = new PrintWriter(toServer, true);
+				pw.println(password);
+
 				InputStream fromServer = clientSocket.getInputStream();
-				ObjectOutputStream out = new ObjectOutputStream(toServer);
 				
 				// Send File name you want to verify
 				// Note I am using password to hold file name...
@@ -504,9 +526,10 @@ public class client
 				// and even then... why get an RSA signed file of something 
 				// irrelevant?
 				
-				out.write(password.getBytes("UTF-8"));
-				out.flush();
 				
+				clientSocket.getOutputStream().flush();
+				
+                                System.out.println("Sent file name");        
 	
 				// If server did NOT send 256 bytes that means
 				// file was not found
@@ -537,9 +560,11 @@ public class client
 				{
 					System.out.println("Server did not find the file you were looking for!");
 				}
-				
+		
+                                pw.close();        
 				fromServer.close();
-				out.close();
+				this.closeConnection();
+				System.exit(0);
 			}
 			this.closeConnection();
 		}
@@ -549,7 +574,7 @@ public class client
 		}
 		catch (IOException socket)
 		{
-			die("RSA Files not Found/No connection to Server");
+			socket.printStackTrace();
 		}
 		catch (NoSuchAlgorithmException e)
 		{

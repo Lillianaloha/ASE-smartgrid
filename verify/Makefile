@@ -46,7 +46,7 @@ ASEserver: all
 	java -jar server.jar s 11000 verify
 
 ASEclient: all
-	java -jar client.jar s 160.39.136.200 11273 file4.csv
+	java -jar client.jar s 160.39.136.200 11000 file4.csv
 
 ASEfile:
 	java -jar server.jar ./file4.csv .1
