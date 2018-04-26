@@ -503,8 +503,8 @@ public class client
 				// But I won't patch it for time constraints
 				// and even then... why get an RSA signed file of something 
 				// irrelevant?
-				String send = "./" + password;
-				out.write(send.getBytes("UTF-8"));
+				
+				out.write(password.getBytes("UTF-8"));
 				out.flush();
 				
 	
@@ -524,11 +524,11 @@ public class client
 					// verify it
 					if(verify(data, signature, serverPublicKey))
 					{
-						System.out.println("The file has NOT been editted");
+						System.out.println("The file " + password + " has NOT been editted");
 					}
 					else
 					{
-						System.out.println("Your dataset has been tampered with");
+						System.out.println("Your dataset " + password + " has been tampered with");
 					}
 					
 					in.close();

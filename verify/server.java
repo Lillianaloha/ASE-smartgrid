@@ -224,6 +224,7 @@ public class server implements Runnable
 				byte [] fileSearch = fromClient.readAllBytes();
 				
 				String fileName = new String(fileSearch, "UTF-8");
+				fileName = "./" + fileName;
 				System.out.println("Search for file with this path: " + fileName);
 				
 				// Look for file, byte [] data is filled
@@ -370,51 +371,17 @@ public class server implements Runnable
 			}
 		}
 
-		// Run anomaly detection
-		// server.jar "compare" <data set> <given percentage>
-		else if (args.length == 3)
-		{
-			if (!args[0].equals("verify"))
+		// Run Method to Test Anomalies in Dataset by increments
+		// server.jar <data set> <given percentage>
+		else if (args.length == 2)
+		{			
+			try 
 			{
-				die("What are you trying to do?");
-			}
-			
-			// See Method at the VERY BOTTOM
-			if(isValidFile(args[1]))
+				invalidInstance(args[0], args[1]);
+			} 
+			catch (Exception e) 
 			{
-				String Hash = null;
-				try 
-				{
-					Hash = new String(server.hashFile(data));
-				}
-				catch (NoSuchAlgorithmException e)
-				{
-					e.printStackTrace();
-				}
-				// Print the Hash
-				if (Hash != null)
-				{
-					System.out.println(Hash);
-				}
-				else
-				{
-					die("Hash is NULL!");
-				}
-				
-				//Compare with input!
-				if (Hash.equals(args[2]))
-				{
-					System.out.print("File hasn't been changed!");
-				}
-				else 
-				{
-					System.out.println("File has been changed!");
-				}
-				System.exit(0);
-			}
-			else
-			{
-				die("Input file does not exist!");
+				die("Invalid File or invalid percentage input");
 			}
 		}
 		
@@ -423,9 +390,25 @@ public class server implements Runnable
 		// 3- Sign it 
 		// 4- Send the Server Public Key as well
 		
+		// WILL READ KEYS FROM FOLDERS ATTACH WITH GIT
+		// java -jar server.jar <port>
 		else if (args.length == 3)
 		{
+			// Is argument 's'?
+			if(isValidAction(args[0]) == false)
+			{
+				die("Invalid action argument!");
+			}
 			
+			// Valid Port to Listen to
+			if(isValidPortNumber(args[0])==false)
+			{
+				die("Invalid Port Number!");
+			}
+			// Read Files from Default Location
+			// I also don't need Client Public Key...
+			server signature = new server(null, null, null);
+			new Thread(signature).start();	
 		}
 		
 		if(args.length != 5)
@@ -627,17 +610,23 @@ public class server implements Runnable
 		//error range should be any number between 0 and 1
 		if(errorRate <= 0 || errorRate >= 1)
 		{
-			System.out.println("wrong error rate");
+			System.out.println("Invalid Error Rate!");
 		}
 		
 		Scanner scanner = new Scanner(new File(filePath));
-		int[] array1 = new int[17];
-		int[] array2 = new int[17];
+		int [] array1 = new int[17];
+		int [] array2 = new int[17];
 		int counter = 0;
-
+		int size = 0;
+		
+		// Skip Header Header
+		scanner.nextLine();
+		
 		//read first line
-		if(scanner.hasNext()) {
+		if(scanner.hasNext()) 
+		{
 			array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
+			++size;
 		}
 
 		//read second line, compare, and then move to the next two lines.
@@ -647,14 +636,18 @@ public class server implements Runnable
 			for(int i= 0; i < array1.length; i++) 
 			{
 				double error = array1[i] * errorRate;
-				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
+				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error )
+				{
 					counter++;
 					break;
 				}
 			}
+			++size;
 			array1 = array2;
 		}
-
+		
+		System.out.println("Given the file: " + filePath + " There are " + counter + " out of " + size + " entries " 
+				+ " where the data increments over " + errorRate);
 		scanner.close();
 		return counter;
 	}
