@@ -40,8 +40,6 @@ public class server implements Runnable
 	private static int port;
 	private static char mode;
 	
-
-
 	private ServerSocket serverSocket = null;
 	private Socket clientSocket = null;
 	private BufferedInputStream fromClient = null;
@@ -119,10 +117,11 @@ public class server implements Runnable
 			}
 			else
 			{
-				readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+                                System.out.println("Read objects");
+				readObject = new ObjectInputStream(new FileInputStream(new File(PUBLICKEYLOCATION)));
 				pubKey = (PublicKey) readObject.readObject();
 
-				readObject = new ObjectInputStream(new FileInputStream(new File(serverSK)));
+				readObject = new ObjectInputStream(new FileInputStream(new File(PRIVATEKEYLOCATION)));
 				privKey = (PrivateKey) readObject.readObject();
 
 				readObject.close();
@@ -132,12 +131,14 @@ public class server implements Runnable
 		{
 			die("Invalid File location for RSA keys");
 		}	
+                System.out.println("done with keys");
 	}
 
 	public void run()
 	{
 		try
 		{
+                        System.out.println("new server socket made");
 			serverSocket = new ServerSocket(port);
 
 			//Run forever until CTRL-C is pressed
@@ -163,6 +164,7 @@ public class server implements Runnable
 	 * */
 	private void process()
 	{
+                System.out.println("Start!");
 		try 
 		{
 			InputStream fromClient = clientSocket.getInputStream();
@@ -218,6 +220,8 @@ public class server implements Runnable
 				
 			// ASE PLUG IN
 			case('s'):
+
+                                System.out.println("Case S");
 				
 				// Get Stream to print signature/error message
 				OutputStream toClient = clientSocket.getOutputStream();
@@ -318,7 +322,7 @@ public class server implements Runnable
 			return false;
 		}
 		mode = action.charAt(0);
-		if (mode == 'd' || mode == 'v')
+		if (mode == 'd' || mode == 'v' || mode == 's')
 		{
 			return true;
 		}
@@ -330,6 +334,17 @@ public class server implements Runnable
 
 	public static void main(String [] args) throws FileNotFoundException
 	{
+
+                /*
+                 * For future reference...
+                 * DO NOT have multiple instances 
+                 * of starting a thread in if/else.
+                 *
+                 * It is not like C where I can just run a thread
+                 * You can use conditions to load the thread. NOT RUN IT!
+                 */
+                Thread t = null;
+
 		// How to build the RSA Keys
 		if (args.length == 0)
 		{
@@ -374,7 +389,7 @@ public class server implements Runnable
 		// Run Method to Test Anomalies in Dataset by increments
 		// server.jar <data set> <given percentage>
 		else if (args.length == 2)
-		{			
+		{		        
 			try 
 			{
 				invalidInstance(args[0], args[1]);
@@ -383,6 +398,7 @@ public class server implements Runnable
 			{
 				die("Invalid File or invalid percentage input");
 			}
+                        System.exit(0);
 		}
 		
 		// 1- Get connection from Client...
@@ -391,8 +407,8 @@ public class server implements Runnable
 		// 4- Send the Server Public Key as well
 		
 		// WILL READ KEYS FROM FOLDERS ATTACH WITH GIT
-		// java -jar server.jar <port>
-		else if (args.length == 3)
+		// java -jar server.jar <arg> <port>
+                else if (args.length == 3)
 		{
 			// Is argument 's'?
 			if(isValidAction(args[0]) == false)
@@ -401,33 +417,41 @@ public class server implements Runnable
 			}
 			
 			// Valid Port to Listen to
-			if(isValidPortNumber(args[0])==false)
+			if(isValidPortNumber(args[1])==false)
 			{
 				die("Invalid Port Number!");
 			}
 			// Read Files from Default Location
-			// I also don't need Client Public Key...
-			server signature = new server(null, null, null);
-			new Thread(signature).start();	
+			
+                        // I also don't need Client Public Key...
+			//System.out.println("Starting Thread");
+                        t = new Thread(new server(null, null, null));
+                        //System.out.println("It ended?");
 		}
+                else
+                {
 		
-		if(args.length != 5)
-		{
-			die("Invalid amount of arguments");
-		}
+                    if(args.length != 5)
+                    {
+                        die("Invalid amount of arguments: " + args.length);
+                    }
 
-		if(isValidPortNumber(args[0])==false)
-		{
-			die("Invalid Port Number!");
-		}
-		if(isValidAction(args[1]) == false)
-		{
-			die("Invalid action argument!");
-		}
-		//File Location is checked on the Constructor!
-		//Pass in: Client PublicKey, Server PublicKey, Server PrivateKey Locations
-		server signature = new server(args[2], args[3], args[4]);
-		new Thread(signature).start();
+		
+                    if(isValidPortNumber(args[0])==false)
+                    {
+                        die("Invalid Port Number!");
+                    }
+		
+                    if(isValidAction(args[1]) == false)
+                    {
+                        die("Invalid action argument!");
+                    }
+                    //File Location is checked on the Constructor!
+                    //Pass in: Client PublicKey, Server PublicKey, Server PrivateKey Locations
+                    server verify = new server(args[2], args[3], args[4]);
+                    t = new Thread(verify);
+                }
+                t.start();
 	}
 
 	// Generate RSA Public Keys

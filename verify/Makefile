@@ -43,10 +43,10 @@ testVServer: all
 	java -jar server.jar 11273 v ./PublicKey/clientPublicKey.obj ./PublicKey/serverPublicKey.obj ./PrivateKey/serverPrivateKey.obj
 
 ASEserver: all
-	java -jar server.jar s 11000
+	java -jar server.jar s 11000 verify
 
 ASEclient: all
-	java -jar client.jar v 160.39.136.200 11273 file4.csv
+	java -jar client.jar s 160.39.136.200 11273 file4.csv
 
 ASEfile:
 	java -jar server.jar ./file4.csv .1
