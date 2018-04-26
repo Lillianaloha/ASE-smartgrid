@@ -516,7 +516,6 @@ public class client
 
 				PrintWriter pw = new PrintWriter(toServer, true);
 				pw.println(password);
-
 				InputStream fromServer = clientSocket.getInputStream();
 				
 				// Send File name you want to verify
@@ -537,8 +536,7 @@ public class client
 				
 				// But if I did get 256 bytes, I can assume
 				// I got a signature!
-				int readSize = 0;
-                                if((readSize = fromServer.read(signature)) == 256)
+				if(fromServer.read(signature) == 256)
 				{
 					ObjectInputStream in = new ObjectInputStream(fromServer);
 					// Get Server Public Key
@@ -561,9 +559,8 @@ public class client
 				{
 					System.out.println("Server did not find the file you were looking for!");
 				}
-                                System.out.println(readSize);
-		
-                                pw.close();        
+				
+                                pw.close();
 				fromServer.close();
 				this.closeConnection();
 				System.exit(0);
