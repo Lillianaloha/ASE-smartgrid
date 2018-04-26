@@ -120,7 +120,6 @@ public class server implements Runnable
 			}
 			else
 			{
-                                System.out.println("Read objects");
 				readObject = new ObjectInputStream(new FileInputStream(new File(PUBLICKEYLOCATION)));
 				pubKey = (PublicKey) readObject.readObject();
 
@@ -134,14 +133,12 @@ public class server implements Runnable
 		{
 			die("Invalid File location for RSA keys");
 		}	
-                System.out.println("done with keys");
 	}
 
 	public void run()
 	{
 		try
 		{
-                        System.out.println("new server socket made");
 			serverSocket = new ServerSocket(port);
 
 			//Run forever until CTRL-C is pressed
@@ -167,7 +164,6 @@ public class server implements Runnable
 	 * */
 	private void process()
 	{
-                System.out.println("Start!");
 		try 
 		{
 			InputStream fromClient = clientSocket.getInputStream();
@@ -224,8 +220,6 @@ public class server implements Runnable
 				
 			// ASE PLUG IN
 			case('s'):
-
-                                System.out.println("Case S");
 				
 				// Get Stream to print signature/error message
                                 /*
@@ -245,13 +239,13 @@ public class server implements Runnable
 				String fileName = br.readLine();
 				//br.close();
 	
-				//fileName = "./" + fileName;
+				fileName = "./" + fileName;
 				System.out.println("Search for file with this path: " + fileName);
 				
 				// Look for file, byte [] data is filled
 				if(isValidFile(fileName))
 				{	
-                                        System.out.println("Got a valid file!");
+                                        System.out.println("Got a valid file, Signing it and sending it back!");
 
 					// Get Signature and send it
 					byte [] signature = sign(data, privKey);			
@@ -259,17 +253,16 @@ public class server implements Runnable
 					toClient.flush();
 					
 					// Send Server Public Key...
-					ObjectOutputStream pubkeyOUT = new ObjectOutputStream(clientSocket.getOutputStream());
+					ObjectOutputStream pubkeyOUT = new ObjectOutputStream(toClient);
 					pubkeyOUT.writeObject(pubKey);
 					pubkeyOUT.flush();
 					
-					toClient.close();
 					pubkeyOUT.close();
 				}
 				//File not Found send error...
 				else
 				{
-                                        System.out.println("Did not get a valid file!");
+                                        System.out.println("Did not get a valid file! Nothing to sign!");
 					// I can do this by sending NOT 256 bytes
 					byte error = 0x0;
 					toClient.write(error);
