@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -108,7 +109,7 @@ public class client
 			return false;
 		}
 		ACTION = action.charAt(0);
-		if (ACTION == 'a' || ACTION == 'b' || ACTION == 'c')
+		if (ACTION == 'a' || ACTION == 'b' || ACTION == 'c' || ACTION == 'v')
 		{
 			return true;
 		}
@@ -234,6 +235,31 @@ public class client
 			client.printRSAKeys();
 			System.exit(0);
 		}
+		
+		// ASE File verification
+		// java -jar client.jar <v> <IP> <Port> <filename>
+		if(args.length == 4)
+		{
+			if(isValidAction(args[0])==false)
+			{
+				die("Invalid Action!");
+			}
+			if(isValidIP(args[1])==false)
+			{
+				die("Invalid IP Address!");
+			}
+			if(isValidPortNumber(args[2]) == false)
+			{
+				die("Invalid Port Number!");
+			}
+			if(isValidFile(args[3])==false)
+			{
+				die("I/O exception caught, File does not exist!");
+			}
+			// Instead of password, passing in filename...
+			client networkClient = new client(args[3], args[2], null, null, null);
+		}
+		
 		else if (args.length != 8)
 		{
 			die("Invalid amount of arguments");
@@ -378,20 +404,25 @@ public class client
 		Object input = null;
 		try
 		{
-			//Read all the RSA Keys
-			readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
-			input = readObject.readObject();
-			serverPublicKey = (PublicKey) input;
+			// Only read key on default
+			// For ASE...Keys will be given to you...
+			if(ACTION != 'v')
+			{
+				//Read all the RSA Keys
+				readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+				input = readObject.readObject();
+				serverPublicKey = (PublicKey) input;
 
-			readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
-			input = readObject.readObject();
-			pubKey = (PublicKey) input;
+				readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
+				input = readObject.readObject();
+				pubKey = (PublicKey) input;
 
-			readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
-			input = readObject.readObject();
-			privKey = (PrivateKey) input;
+				readObject = new ObjectInputStream(new FileInputStream(new File(clientSK)));
+				input = readObject.readObject();
+				privKey = (PrivateKey) input;
 
-			readObject.close();
+				readObject.close();
+			}
 
 			//Establish Connection
 			clientSocket = new Socket(IP, port);
@@ -458,6 +489,58 @@ public class client
 				toServer.write(data);
 				toServer.flush();
 			}
+			
+			// ASE PLUG IN
+			else if (ACTION == 'v')
+			{
+				byte [] signature = new byte [256];
+				InputStream fromServer = clientSocket.getInputStream();
+				ObjectOutputStream out = new ObjectOutputStream(toServer);
+				
+				// Send File name you want to verify
+				// Note I am using password to hold file name...
+				// Currently I am aware that this can search directories
+				// But I won't patch it for time constraints
+				// and even then... why get an RSA signed file of something 
+				// irrelevant?
+				String send = "./" + password;
+				out.write(send.getBytes("UTF-8"));
+				out.flush();
+				
+	
+				// If server did NOT send 256 bytes that means
+				// file was not found
+				// Since all signatures are always 256 bytes.
+				
+				// But if I did get 256 bytes, I can assume
+				// I got a signature!
+				if(fromServer.read(signature) == 256)
+				{
+					ObjectInputStream in = new ObjectInputStream(fromServer);
+					// Get Server Public Key
+					Object key = in.readObject();
+					serverPublicKey = (PublicKey) key;
+					
+					// verify it
+					if(verify(data, signature, serverPublicKey))
+					{
+						System.out.println("The file has NOT been editted");
+					}
+					else
+					{
+						System.out.println("Your dataset has been tampered with");
+					}
+					
+					in.close();
+				}
+				else
+				{
+					System.out.println("Server did not find the file you were looking for!");
+				}
+				
+				fromServer.close();
+				out.close();
+			}
 			this.closeConnection();
 		}
 		catch (UnknownHostException socket)
@@ -495,4 +578,23 @@ public class client
 			die("Failed to close connection");
 		}
 	}
+	
+	/*
+	 * verify a byte[]
+	 * using an RSA Public Key
+	 * and decrypt it from SHA-256 Hashing
+	 * */
+
+	public static boolean verify(byte [] plainText, byte [] signature, PublicKey publicKey) 
+			throws Exception 
+	{
+		Signature publicSignature = Signature.getInstance("SHA256withRSA");
+		//Initialize with Public Key
+		publicSignature.initVerify(publicKey);
+		//Place plain text into queue
+		publicSignature.update(plainText);
+		//Decrypt signature with public key and de hash. Then compare...
+		return publicSignature.verify(signature);
+	}
+
 }

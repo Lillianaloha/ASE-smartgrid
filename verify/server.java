@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
@@ -33,8 +34,8 @@ public class server implements Runnable
 {
 	private final static int KEYSIZE = 2048;
 	private static byte [] data;
-	private static final String PUBLICKEYLOCATION = "./serverPublicKey.obj";
-	private static final String PRIVATEKEYLOCATION = "./PrivateKey.obj";
+	private static final String PUBLICKEYLOCATION = "./PublicKey/serverPublicKey.obj";
+	private static final String PRIVATEKEYLOCATION = "./PrivateKey/serverPrivateKey.obj";
 
 	private static int port;
 	private static char mode;
@@ -46,7 +47,7 @@ public class server implements Runnable
 	private BufferedInputStream fromClient = null;
 
 	//server RSA Keys
-	public PublicKey pubKey = null;
+	public static PublicKey pubKey = null;
 	private static PrivateKey privKey = null;
 
 	//client RSA public key
@@ -99,31 +100,38 @@ public class server implements Runnable
 	public server(String clientPK, String serverPK, String serverSK)
 	{	
 
-		/*
-		 * Read all the RSA required keys
-		 */
+		// Read all the RSA required keys
 		ObjectInputStream readObject = null;
 		try
 		{
-			readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
-			clientPublicKey = (PublicKey) readObject.readObject();
+			if (mode != 's')
+			{
+				readObject = new ObjectInputStream(new FileInputStream(new File(clientPK)));
+				clientPublicKey = (PublicKey) readObject.readObject();
 
-			readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
-			pubKey = (PublicKey) readObject.readObject();
+				readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+				pubKey = (PublicKey) readObject.readObject();
 
-			readObject = new ObjectInputStream(new FileInputStream(new File(serverSK)));
-			privKey = (PrivateKey) readObject.readObject();
+				readObject = new ObjectInputStream(new FileInputStream(new File(serverSK)));
+				privKey = (PrivateKey) readObject.readObject();
 
-			readObject.close();
+				readObject.close();
+			}
+			else
+			{
+				readObject = new ObjectInputStream(new FileInputStream(new File(serverPK)));
+				pubKey = (PublicKey) readObject.readObject();
+
+				readObject = new ObjectInputStream(new FileInputStream(new File(serverSK)));
+				privKey = (PrivateKey) readObject.readObject();
+
+				readObject.close();
+			}
 		}
 		catch (IOException | ClassNotFoundException e)
 		{
 			die("Invalid File location for RSA keys");
 		}	
-	}
-
-	public server() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public void run()
@@ -158,7 +166,7 @@ public class server implements Runnable
 		try 
 		{
 			InputStream fromClient = clientSocket.getInputStream();
-
+	
 			switch(mode)
 			{
 			// decrypt
@@ -207,13 +215,49 @@ public class server implements Runnable
 					System.out.println("signature is invalid");
 				}
 				break;
-
+				
+			// ASE PLUG IN
+			case('s'):
+				
+				// Get Stream to print signature/error message
+				OutputStream toClient = clientSocket.getOutputStream();
+				byte [] fileSearch = fromClient.readAllBytes();
+				
+				String fileName = new String(fileSearch, "UTF-8");
+				System.out.println("Search for file with this path: " + fileName);
+				
+				// Look for file, byte [] data is filled
+				if(isValidFile(fileName))
+				{	
+					// Get Signature and send it
+					byte [] signature = sign(data, privKey);			
+					toClient.write(signature);
+					toClient.flush();
+					
+					// Send Server Public Key...
+					ObjectOutputStream pubkeyOUT = new ObjectOutputStream(clientSocket.getOutputStream());
+					pubkeyOUT.writeObject(pubKey);
+					pubkeyOUT.flush();
+					
+					toClient.close();
+					pubkeyOUT.close();
+				}
+				//File not Found send error...
+				else
+				{
+					// I can do this by sending NOT 256 bytes
+					byte error = 0x0;
+					toClient.write(error);
+					toClient.flush();
+				}
+			
+				toClient.close();
+				break;
 			default:
 				die("Invalid char argument!");
 				break;
 			}
 			this.closeConnection();
-			//Professor Cook said the Server should die...
 			System.exit(0);
 		}
 		catch(BadPaddingException e)
@@ -288,9 +332,8 @@ public class server implements Runnable
 		// How to build the RSA Keys
 		if (args.length == 0)
 		{
-			server signature = new server();
-			signature.buildKeyPair();
-			signature.printRSAKeys();
+			server.buildKeyPair();
+			server.printRSAKeys();
 			System.exit(0);
 		}
 
@@ -300,22 +343,7 @@ public class server implements Runnable
 		{
 			// Read all the file into byte array
 			if(isValidFile(args[0]))
-			{
-				//Establish Connection
-			    //Socket clientSocket = new Socket(IP, port);
-				//toServer = clientSocket.getOutputStream();
-				//byte [] signature = null;
-				/*
-				try 
-				{
-					signature = sign(data, privKey);
-				} 
-				catch (Exception e1)
-				{
-					e1.printStackTrace();
-				}
-				*/
-				
+			{			
 				String Hash = null;
 				try 
 				{
@@ -373,9 +401,6 @@ public class server implements Runnable
 					die("Hash is NULL!");
 				}
 				
-                                System.out.println(Hash);
-                                System.out.println(args[2]);
-
 				//Compare with input!
 				if (Hash.equals(args[2]))
 				{
@@ -391,6 +416,16 @@ public class server implements Runnable
 			{
 				die("Input file does not exist!");
 			}
+		}
+		
+		// 1- Get connection from Client...
+		// 2- Get the file the client is looking for
+		// 3- Sign it 
+		// 4- Send the Server Public Key as well
+		
+		else if (args.length == 3)
+		{
+			
 		}
 		
 		if(args.length != 5)
@@ -414,7 +449,7 @@ public class server implements Runnable
 
 	// Generate RSA Public Keys
 
-	public void buildKeyPair() 
+	public static void buildKeyPair() 
 	{
 		KeyPairGenerator keyPairGenerator = null;
 		try 
@@ -438,7 +473,7 @@ public class server implements Runnable
 	 * The location of where it is printed is
 	 * determined by the final strings
 	 * */
-	public void printRSAKeys()
+	public static void printRSAKeys()
 	{
 		ObjectOutputStream pkOUT = null;
 		try
