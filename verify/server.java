@@ -579,47 +579,6 @@ public class server implements Runnable
 		return publicSignature.verify(signature);
 	}
 
-
-	/*
-	 * Test if the input is reasonable. By reasonable, we mean if for every 
-	 * two lines of data, the corresponding data from the second line is within 
-	 * 'errorRate' percent difference of the first. 
-	 */
-	public static int invalidInstance(String filePath, double errorRate) throws FileNotFoundException{
-		//error range should be any number between 0 and 1
-		if(errorRate <= 0 || errorRate >= 1) 
-		{
-			System.out.println("wrong error rate");
-		}
-
-		Scanner scanner = new Scanner(new File(filePath));
-		int[] array1 = new int[17];
-		int[] array2 = new int[17];
-		int counter = 0;
-
-		//read first line
-		if(scanner.hasNext()) 
-		{
-			array1 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-		}
-
-		//read second line, compare, and then move to the next two lines.
-		while(scanner.hasNext()){
-			array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-			for(int i= 0; i < array1.length; i++) {
-				double error = array1[i] * errorRate;
-				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error ) {
-					counter++;
-					break;
-				}
-			}
-			array1 = array2;
-		}
-
-		scanner.close();
-		return counter;
-	}
-
 	// Close Socket
 	private void closeConnection()
 	{
@@ -653,8 +612,8 @@ public class server implements Runnable
 		}
 		
 		Scanner scanner = new Scanner(new File(filePath));
-		int [] array1 = new int[17];
-		int [] array2 = new int[17];
+		int [] array1 = new int[18];
+		int [] array2 = new int[18];
 		int counter = 0;
 		int size = 0;
 		
@@ -672,10 +631,10 @@ public class server implements Runnable
 		while(scanner.hasNext())
 		{
 			array2 = Stream.of(scanner.next().split(",")).mapToInt(Integer::parseInt).toArray();
-			for(int i= 0; i < array1.length; i++) 
+			for(int i= 1; i < array1.length; i++) 
 			{
 				double error = array1[i] * errorRate;
-				if(array2[i] < array1[i] - error || array2[i] > array1[i] + error )
+				if(Math.abs(array2[i]) < Math.abs(array1[i]) - Math.abs(error) || Math.abs(array2[i]) > Math.abs(array1[i]) + Math.abs(error) )
 				{
 					counter++;
 					break;
