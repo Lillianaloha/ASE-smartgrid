@@ -608,7 +608,7 @@ public class server implements Runnable
 		//error range should be any number between 0 and 1
 		if(errorRate <= 0 || errorRate >= 1)
 		{
-			System.out.println("Invalid Error Rate!");
+			die("Invalid Error Rate!");
 		}
 		
 		Scanner scanner = new Scanner(new File(filePath));
